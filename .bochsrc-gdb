@@ -1,0 +1,15 @@
+megs: 4
+
+romimage: file=resources/BIOS-bochs-latest
+vgaromimage: file=/usr/share/vgabios/vgabios.bin
+
+floppya: 1_44=cmake-build-debug/myos.img, status=inserted
+
+boot: floppy
+
+log: bochsout.txt
+
+mouse: enabled=0
+keyboard: keymap=resources/x11-pc-us.map
+
+gdbstub: enabled=1, port=9000, text_base=0, data_base=0, bss_base=0
