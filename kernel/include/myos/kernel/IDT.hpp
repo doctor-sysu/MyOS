@@ -2,7 +2,8 @@
 
 #include <cstdint>
 
-
+namespace myos {
+namespace kernel {
 
 class IDT
 {
@@ -21,7 +22,7 @@ private:
         uint32_t base;
     };
 
-#pragma pack(pdop)
+#pragma pack(pop)
 private:
     int interrupt_count;
     IDTR idtr;
@@ -32,4 +33,7 @@ public:
 
 };
 
+
+}
+}
 
