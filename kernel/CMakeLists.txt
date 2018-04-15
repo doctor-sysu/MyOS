@@ -7,8 +7,11 @@ set(CMAKE_ASM_NASM_COMPILE_OBJECT "<CMAKE_ASM_NASM_COMPILER> <INCLUDES> <FLAGS> 
 
 add_executable(kernel
         src/main.cpp
-        src/Cat.cpp
-        include/myos/kernel/Cat.hpp
+        src/cpu.asm
+        src/8259A.asm
+        src/IDT.cpp
+        include/myos/kernel/IDT.hpp
+        include/cstdint
 
         src/start.asm
         src/multiboot.asm
