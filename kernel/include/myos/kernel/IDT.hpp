@@ -24,7 +24,6 @@ private:
 
 #pragma pack(pop)
 private:
-    int interrupt_count;
     IDTR idtr;
     IDTEntry idt[64];
 public:

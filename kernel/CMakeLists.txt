@@ -12,7 +12,7 @@ add_executable(kernel
         src/IDT.cpp
         include/myos/kernel/IDT.hpp
         include/cstdint
-
+        src/interrupt.asm
         src/start.asm
         src/multiboot.asm
         )
