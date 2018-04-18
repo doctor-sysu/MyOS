@@ -10,11 +10,14 @@ class IDT
 private:
 #pragma pack(push, 1)
     struct IDTEntry {
-        uint16_t offset1;
+        uint16_t LowOffset;
         uint16_t selector;
-        uint8_t zero;
-        uint8_t flags;
-        uint16_t offset2;
+        unsigned char zero;
+        unsigned char segment_type:4;
+        unsigned char system_segment_flag:1;
+        unsigned char DPL:2;
+        unsigned char P:1;
+        uint16_t HiOffset;
     };
 
     struct IDTR {

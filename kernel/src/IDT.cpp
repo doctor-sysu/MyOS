@@ -4,8 +4,11 @@ namespace myos {
 namespace kernel {
 
 IDT::IDT() {
-    idtr.base = reinterpret_cast<uint32_t>(idt);
+    idtr.base = (uint32_t)&idt[0];
     idtr.limit = sizeof(IDTEntry) * 64;
+    _asm{
+        lidt
+    };
     for (int i = 0; i < 64; ++i) {
         idt[i].flags = 0;
         idt[i].offset1 = 0;
@@ -24,6 +27,7 @@ void IDT::AddInterrupt(uint8_t interrupt, uint8_t dpl, void *handler) {
     uint16_t offset2 =  pt & 0x0000ffff;
     idt[interrupt].offset1 = offset1;
     idt[interrupt].offset2 = offset2;
+
 }
 
 }
