@@ -1,32 +1,10 @@
 BITS 32
+global callinterrupt
 
-_callinterrupt:
-    push ss
-    push esp
-    push gs
-    push fs
-    push es
-    push ds
-    push ebp
-    push edi
-    push esi
-    push edx
-    push ecx
-    push ebx
+[SECTION .text]
+callinterrupt:
     push eax
-
-
-
+    mov eax, 0xb8000
+    mov byte [eax], 'A'
     pop eax
-    pop ebx
-    pop ecx
-    pop edx
-    pop esi
-    pop edi
-    pop ebp
-    pop ds
-    pop es
-    pop fs
-    pop gs
-    pop esp
-    pop ss
+    iret
