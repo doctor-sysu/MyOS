@@ -15,7 +15,7 @@ add_executable(kernel
         src/interrupt.asm
         src/start.asm
         src/multiboot.asm
-        )
+        include/myos/kernel/FAT12.hpp src/FAT12.cpp)
 
 target_compile_options(kernel
         PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-m32 -masm=intel -ffreestanding -fno-stack-protector -fno-exceptions -fno-rtti -mno-red-zone>
