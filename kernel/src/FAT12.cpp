@@ -198,7 +198,7 @@ void Load_FAT(uint32_t begin, uint32_t FAT_In_Memory) {
     memory += bpbBytesPerSector;
     FAT_LBA++;
     //}
-    uint32_t offset = 0xA100;
+    uint32_t offset = 0x200000;
 
     uint32_t now = begin;
 
@@ -264,7 +264,7 @@ int FAT12(char file) {
     );
     //找到目标文件在根目录中的位置,在root_directory中搜索文件
     char file_name[13] = "LETTER0 EXE\0";
-    file_name[6] = file;
+    file_name[6] = static_cast<char>(file + 48u);
     int file_In_Directory = Find_File(file_name);
     if (file_In_Directory == -1) {
         asm volatile(
@@ -288,7 +288,7 @@ int FAT12(char file) {
     asm volatile(
     "sti"
     );
-    return 0xA100;        //已经把用户程序加载到偏移量为 0xA100 处
+    return 0x200000;        //已经把用户程序加载到偏移量为 0x200000 处
 }
 
 }

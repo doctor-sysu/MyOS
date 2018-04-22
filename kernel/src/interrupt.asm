@@ -1,8 +1,4 @@
 BITS 32
-global callinterrupt
-
-[SECTION .text]
-callinterrupt:
 
 global Clock_interrupt
 extern printA
@@ -19,8 +15,8 @@ extern print_Hello
 global User_Int4
 extern print_World
 
-
 [SECTION .text]
+
 Keyboard_interrupt:
     push gs
     push fs
@@ -72,10 +68,10 @@ Clock_interrupt:
     push eax
     ;call the handler
     call printA
-    int 30h
-    int 31h
-    int 32h
-    int 33h
+    ;int 30h
+    ;int 31h
+    ;int 32h
+    ;int 33h
     ;reset register
     pop eax
     pop ebx
@@ -125,6 +121,13 @@ Floppy_interrupt:
     pop es
     pop fs
     pop gs
+
+    ; send EOI
+    push eax
+    mov al, 0x20
+    out 0x20, al
+    pop eax
+    sti ; Re-enable interrupts
 
     iret
 

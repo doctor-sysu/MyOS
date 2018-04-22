@@ -10,7 +10,7 @@ add_subdirectory(user)
 
 add_custom_command(
         OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/myos.img
-        DEPENDS kernel
+        DEPENDS kernel letter1
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         COMMAND ./pack.sh ${CMAKE_CURRENT_BINARY_DIR}
 )
