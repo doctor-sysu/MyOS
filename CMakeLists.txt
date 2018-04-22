@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 11)
 
 add_subdirectory(clib)
 add_subdirectory(kernel)
+add_subdirectory(user)
 
 add_custom_command(
         OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/myos.img

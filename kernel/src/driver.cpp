@@ -8,12 +8,13 @@ static const uint16_t floppy_base = 0x03f0;
 uint16_t DIGITAL_OUTPUT_REGISTER = 0x3f2; //base + 2
 uint16_t DATA_FIFO = 0x3f5;               //base + 5
 uint16_t MAIN_STATUS_REGISTER = 0x3f4;    //base + 4
-bool finishReadSector = false;
-void * buffer = nullptr;
+void *buffer = nullptr;
+bool finishReadSector;
 
-namespace  myos {
+namespace myos {
 namespace kernel {
-namespace driver {
+namespace FAT12 {
+
 
 uint8_t in(uint32_t port) { //read data form port
     uint8_t data = 0;
@@ -123,6 +124,7 @@ bool readSector(uint8_t *dest, uint32_t LBA) {
     uint32_t track, head, sector;
     LBA_To_CHS(LBA, &sector, &head, &track);
 
+    finishReadSector = false;
     // reset controller
     writeDOR(0);
     for (int i = 0; i < 50000; ++i) {
@@ -130,7 +132,6 @@ bool readSector(uint8_t *dest, uint32_t LBA) {
     }
     //open drive 0, enable controller, normal operation
     writeDOR(0b00011100);
-    finishReadSector = false;
     asm volatile(
     "sti"
     );
@@ -144,6 +145,7 @@ bool readSector(uint8_t *dest, uint32_t LBA) {
     readData();
     readData();
 
+    finishReadSector = false;
     // send command to read sector
     send_cmd_ToFIFO(0b01000110);  // set above for current direction
     send_cmd_ToFIFO(static_cast<uint8_t>(head << 2));    // 0:0:0:0:0:HD:US1:US0 = head and drive
@@ -156,7 +158,6 @@ bool readSector(uint8_t *dest, uint32_t LBA) {
     send_cmd_ToFIFO(0xff); // data length (0xff if B/S != 0)
 
     // wait for IRQ6, means the sector has been read
-    finishReadSector = false;
     asm volatile(
     "sti"
     );

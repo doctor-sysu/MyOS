@@ -15,4 +15,5 @@ cp myos.img "${BUILD_DIR}"
 cd "${BUILD_DIR}"
 
 mcopy -i myos.img kernel/kernel ::/boot/kernel.bin
+mcopy -i myos.img user/letter1 ::/LETTER1.EXE
 #mcopy -i myos.img apps/welcome ::/WELCOME.EXE

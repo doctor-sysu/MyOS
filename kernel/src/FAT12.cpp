@@ -9,7 +9,7 @@ namespace myos {
 namespace kernel {
 namespace FAT12 {
 
-using driver::readSector;
+using FAT12::readSector;
 
 uint32_t datasector = 0;
 
@@ -17,13 +17,13 @@ uint32_t datasector = 0;
 //extern void mprintf(char *pszInfo);
 
 struct Directory_Entry {
-    char DIR_NAME[11];                //文件名8字节，扩展名3字节
-    char DIR_Attr[1];                //文件属性，1字节
-    char unused[10];                  //保留，10字节
-    char DIR_WrtTime[2];             //最后修改时间，2字节
-    char DIR_WrtData[2];             //最后修改日期，2字节
-    char DIR_FstClus[2];             //此条目对应的开始簇号，2字节
-    char DIR_FileSize[4];            //文件大小，4字节
+    uint8_t DIR_NAME[11];                //文件名8字节，扩展名3字节
+    uint8_t DIR_Attr[1];                //文件属性，1字节
+    uint8_t unused[10];                  //保留，10字节
+    uint8_t DIR_WrtTime[2];             //最后修改时间，2字节
+    uint8_t DIR_WrtData[2];             //最后修改日期，2字节
+    uint8_t DIR_FstClus[2];             //此条目对应的开始簇号，2字节
+    uint8_t DIR_FileSize[4];            //文件大小，4字节
 };
 
 struct Directory_Entry Root_Directory[10];
@@ -138,7 +138,7 @@ void Load_Root_Directory(uint32_t RD_In_Memory) {
     uint32_t load_address = RD_In_Memory;
     //for (i=0 ; i < Root_Directory_Size ; i++){
     Read_Sector(load_address, Root_Directory_Place);
-    char *ptr = (char *) load_address;
+    uint8_t *ptr = (uint8_t *) load_address;
     //}
     for (; i < 9; i++) {
         uint32_t j = 0;
@@ -173,7 +173,7 @@ void Load_Root_Directory(uint32_t RD_In_Memory) {
 }
 
 int Find_File(char *file_name) {
-    int i = 0;
+    uint32_t i = 0;
     for (; i < 9; i++) {
         int j = 0;
         char require_file[12];
@@ -183,6 +183,7 @@ int Find_File(char *file_name) {
             return i;
         }
     }
+    return -1;
 }
 
 //从扇区中读取FAT进内存
@@ -245,29 +246,48 @@ void Load_FAT(uint32_t begin, uint32_t FAT_In_Memory) {
 
 //把root directory读入内存,并把在内存的引导扇区放入Root_Directory数组
 void Load_RD() {
+    asm volatile(
+    "cli"
+    );
     uint32_t RD_In_Memory = 0x6000;
     Load_Root_Directory(RD_In_Memory);
+    asm volatile(
+    "sti"
+    );
 }
 
 //主函数，返回文件信息
-uint32_t FAT12(char file) {
+int FAT12(char file) {
+
+    asm volatile(
+    "cli"
+    );
     //找到目标文件在根目录中的位置,在root_directory中搜索文件
-    char file_name[13] = "LETTER0 COM\0";
+    char file_name[13] = "LETTER0 EXE\0";
     file_name[6] = file;
     int file_In_Directory = Find_File(file_name);
+    if (file_In_Directory == -1) {
+        asm volatile(
+        "sti"
+        );
+        return -1;
+    }
     //print();
     //先加载FAT表进内存，然后放到FAT数组FAT_List里
     uint32_t FAT_In_Memory = 0x7000;
-    char _begin[2];
+    uint8_t _begin[2];
     //读取第一个cluster
     _begin[0] = Root_Directory[file_In_Directory].DIR_FstClus[0];
     _begin[1] = Root_Directory[file_In_Directory].DIR_FstClus[1];
-    uint32_t begin = _begin[0] + _begin[1] * 256;
+    uint32_t begin = _begin[0] + _begin[1] * 256u;
     Load_FAT(begin, FAT_In_Memory);    //把FAT表加载入内存
 
     //然后用簇计算出LBA然后读用户程序的一个簇，并把用户程序读入内存
     //然后跳到下一个簇，依次循环读用户程序，直到遇到0x0FF7或以上的停止读扇区。
     //这样一来，用户程序就在内存里了。
+    asm volatile(
+    "sti"
+    );
     return 0xA100;        //已经把用户程序加载到偏移量为 0xA100 处
 }
 

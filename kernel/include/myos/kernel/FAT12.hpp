@@ -7,17 +7,9 @@
 //extern int mgetchar();
 namespace  myos {
 namespace kernel {
-namespace driver {
+namespace FAT12 {
 
-//void file(short);    //文件系统//
-//short printf(); //自定义输出函数
-//typedef int int32_t;
-//typedef short int16_t;
-//typedef char int8_t;
-
-
-
-uint32_t FAT12(char file);
+int FAT12(char file);
 
 uint32_t mgetchar();
 
