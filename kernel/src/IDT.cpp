@@ -6,10 +6,11 @@ namespace kernel {
 extern "C" void Clock_interrupt();
 extern "C" void Keyboard_interrupt();
 extern "C" void Floppy_interrupt();
-//extern "C" void User_Int1();
-//extern "C" void User_Int2();
-//extern "C" void User_Int3();
-//extern "C" void User_Int4();
+extern "C" void User_Int1();
+extern "C" void User_Int2();
+extern "C" void User_Int3();
+extern "C" void User_Int4();
+extern "C" void Syscall();
 
 void defaulthandler() {}
 
@@ -44,10 +45,11 @@ void IDT::Install() {
     AddInterrupt(32, 0, Clock_interrupt);
     AddInterrupt(33, 0, Keyboard_interrupt);
     AddInterrupt(38, 0, Floppy_interrupt);
-//    AddInterrupt(48, 0, User_Int1);
-//    AddInterrupt(49, 0, User_Int2);
-//    AddInterrupt(50, 0, User_Int3);
-//    AddInterrupt(51, 0, User_Int4);
+    AddInterrupt(48, 0, User_Int1);
+    AddInterrupt(49, 0, User_Int2);
+    AddInterrupt(50, 0, User_Int3);
+    AddInterrupt(51, 0, User_Int4);
+    AddInterrupt(0x80, 0, Syscall);
 
     asm volatile (
     "lidt [%0]\n"

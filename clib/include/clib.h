@@ -13,6 +13,8 @@ int strncmp(const char *str1, const char *str2, int n);
 size_t strlen(const char *s);
 //size_t gets_s(char* input, size_t len);
 
+
+
 #ifdef __cplusplus
 }
 #endif

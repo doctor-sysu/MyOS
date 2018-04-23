@@ -14,8 +14,60 @@ global User_Int3
 extern print_Hello
 global User_Int4
 extern print_World
+global Syscall
+
 
 [SECTION .text]
+Syscall:
+    push gs
+    push fs
+    push es
+    push ds
+    push ebp
+    push edi
+    push esi
+    push edx
+    push ecx
+    push ebx
+    push eax
+
+    cmp eax, 1
+    je Fun1
+    cmp eax, 2
+    je Fun2
+    cmp eax, 3
+    je Fun3
+    jmp Fun4
+
+Fun1:
+    int 30h
+    jmp Protect_reg
+
+Fun2:
+    int 31h
+    jmp Protect_reg
+
+Fun3:
+    int 32h
+    jmp Protect_reg
+
+Fun4:
+    int 33h
+    jmp Protect_reg
+
+Protect_reg:
+    pop eax
+    pop ebx
+    pop ecx
+    pop edx
+    pop esi
+    pop edi
+    pop ebp
+    pop ds
+    pop es
+    pop fs
+    pop gs
+    iret
 
 Keyboard_interrupt:
     push gs
@@ -193,20 +245,65 @@ User_Int1:
 
      iret
 
-User_Int3:
-    ;protect register
-    push gs
-    push fs
-    push es
-    push ds
-    push ebp
-    push edi
-    push esi
-    push edx
-    push ecx
-    push ebx
-    push eax
-    mov eax, 0xb8000
-    mov byte [eax], 'A'
-    pop eax
-    iret
+ User_Int3:
+     ;protect register
+     push gs
+     push fs
+     push es
+     push ds
+     push ebp
+     push edi
+     push esi
+     push edx
+     push ecx
+     push ebx
+     push eax
+
+     call print_Hello
+
+     ;reset register
+     pop eax
+     pop ebx
+     pop ecx
+     pop edx
+     pop esi
+     pop edi
+     pop ebp
+     pop ds
+     pop es
+     pop fs
+     pop gs
+
+     iret
+
+
+ User_Int4:
+     ;protect register
+     push gs
+     push fs
+     push es
+     push ds
+     push ebp
+     push edi
+     push esi
+     push edx
+     push ecx
+     push ebx
+     push eax
+
+     call print_World
+
+     ;reset register
+     pop eax
+     pop ebx
+     pop ecx
+     pop edx
+     pop esi
+     pop edi
+     pop ebp
+     pop ds
+     pop es
+     pop fs
+     pop gs
+
+     iret
