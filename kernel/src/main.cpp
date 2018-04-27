@@ -1,5 +1,6 @@
 #include <myos/kernel/IDT.hpp>
 #include <myos/kernel/FAT12.hpp>
+#include <myos/kernel/Process.hpp>
 
 extern "C" void cpu_initialize();
 
