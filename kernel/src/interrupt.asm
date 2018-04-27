@@ -15,7 +15,7 @@ extern print_Hello
 global User_Int4
 extern print_World
 global Syscall
-
+extern callprocess
 
 [SECTION .text]
 Syscall:
@@ -111,19 +111,19 @@ Clock_interrupt:
     call Turn_to_kernel_stack
 
     ;now the it is the kernel's stack
-    push gs
-    push fs
-    push es
-    push ds
-    push ebp
-    push edi
-    push esi
     push edx
     push ecx
-    push ebx
     push eax
+    push ebx
+    push ebp
+    push esi
+    push edi
+    push ds
+    push es
+    push fs
+    push gs
     ;call the handler
-    call printA
+    call callprocess
     ;int 30h
     ;int 31h
     ;int 32h
@@ -140,13 +140,13 @@ Clock_interrupt:
     pop es
     pop fs
     pop gs
-    ; send EOI
+    ; send eoi
     push eax
     in al, 60h
     mov al, 0x20
     out 0x20, al
     pop eax
-    sti ; Re-enable interrupts
+    sti ; re-enable interrupts
     iret
 
 Floppy_interrupt:

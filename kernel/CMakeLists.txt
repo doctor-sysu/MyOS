@@ -20,6 +20,7 @@ add_executable(kernel
         include/myos/kernel/FAT12.hpp
         src/driver.cpp
         src/FAT12.cpp
+        include/myos/kernel/Process.hpp
         src/Process.cpp)
 
 target_compile_options(kernel

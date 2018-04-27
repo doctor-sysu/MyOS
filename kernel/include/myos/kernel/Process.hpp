@@ -5,10 +5,8 @@
 namespace myos{
 namespace kernel{
 
-class Process{
-public:
-    void exchange();
-private:
+#pragma pack(push, 1)
+struct PCB {
     uint32_t gs;
     uint32_t fs;
     uint32_t es;
@@ -26,7 +24,18 @@ private:
     uint32_t cs;
     uint32_t eflags;
     uint32_t esp;
-    uint32_t ss;
+};
+
+#pragma pack(pop)
+class Process{
+public:
+    bool create();
+    void exchange(PCB*&);
+private:
+    Process();
+
+    PCB PCBList[10];
+    unsigned int Process_Count;
 };
 
 }
