@@ -55,6 +55,10 @@ Keyboard_interrupt:
 
 Clock_interrupt:
     ;protect register
+
+    call Turn_to_kernel_stack
+
+    ;now the it is the kernel's stack
     push gs
     push fs
     push es
@@ -210,3 +214,23 @@ User_Int3:
     mov byte [eax], 'A'
     pop eax
     iret
+
+
+; Below are the auxiliary functions
+extern kernel_sp
+Turn_to_kernel_stack:
+    push eax
+    mov eax, dword [esp+4]  ;put eip to kernel stack
+    mov dword [kernel_sp], eax
+    mov eax, dword [esp +8] ;put cs to kernel stack
+    mov dword [kernel_sp], eax
+    mov eax, dword [esp +12]    ;put eflags to kernel stack
+    mov dword [kernel_sp], eax
+    mov eax, esp
+    add eax, 12
+    mov dword [kernel_sp + 16], eax
+    mov eax, kernel_sp
+    add eax, 16
+    mov dword [esp], eax
+    pop eax
+    ret
