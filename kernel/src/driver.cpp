@@ -33,13 +33,6 @@ void out(uint32_t port, uint8_t data) {  //write data to port
     );
 }
 
-//Floppy::Floppy() : interruptHandler(sectorReadFinished) {
-//    setSectorSize(512);
-//    Kernel::getCurrentKernel().getCPU()
-//            .registerInterruptHandler(cpu::InterruptType::FLOPPY,
-//                                      &interruptHandler);
-//}
-
 void LBA_To_CHS(const uint32_t LAB, uint32_t *absolute_sector,
                 uint32_t *absolute_head, uint32_t *absolute_track) {
     *absolute_sector = (LAB % (2 * bpbSectorsPerTrack)) % bpbSectorsPerTrack + 1;
@@ -91,12 +84,6 @@ uint8_t readData() {
     wait();
     return in(DATA_FIFO);
 }
-//
-//void InterruptHandlerImpl::handleInterrupt(
-//        cpu::InterruptType interrupt,
-//        cpu::RegisterState &registerState) {
-//    sectorReadFinished = true;
-//}
 
 void memCopy(void *dest, const void *buf, uint16_t len) {
     uint32_t i = 0;

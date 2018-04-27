@@ -2,9 +2,6 @@
 #include <clib.h>
 #include <myos/kernel/FAT12.hpp>
 
-// extern const short Root_Directory_Begin;  //根目录放在第20个扇区，FAT12规定
-// extern const short File_Image_Memory;     //read file int32_to memory (8000:0000)
-// extern const short Root_Directory_Memory; //read root directory or FAT int32_to memory (0500:0000)
 namespace myos {
 namespace kernel {
 namespace FAT12 {
@@ -27,7 +24,6 @@ struct Directory_Entry {
 };
 
 struct Directory_Entry Root_Directory[10];
-//int32_t Root_EntCnt;
 
 struct FAT_Entry1 {
     /*簇在FAT中的占用1.5个字节、2个字节或4个字节的登记项必须是下列值之一：
@@ -36,13 +32,7 @@ struct FAT_Entry1 {
     ·一个“BAD”(FF7H、FFF7H或FFFFFFF7H), 表明该簇有坏扇区，不能使用。
     一个“EOF”(FF8H～FFFH、FFF8H～FFFFH或FFFFFFF8H～FFFFFFFFH之间的任一值), 表明该簇是文件中的最后一簇。*/
     char Current_Cluster[2];
-    //char Next_Cluster[2];
 };
-
-typedef struct FAT_Entry1 FAT_Entry;
-// FAT_Entry FAT1[50];
-// FAT_Entry FAT2[50];
-// int32_t FAT_EntCnt;
 
 //显示用户程序的信息
 //void printFile_Info()
@@ -109,21 +99,10 @@ uint32_t ClusterLBA(const uint32_t cluster) {
     return cluster - 2;
 }
 
+//read a sector into the offset
 void Read_Sector(uint32_t offset, const uint32_t LBA) {
-//    uint32_t absolute_sector = 0,absolute_head = 0
-//            ,absolute_track = 0;
-
+    //use the new way to read sector
     readSector(reinterpret_cast<uint8_t *>(offset), LBA);
-//    LBA_To_CHS (LBA, &absolute_sector, &absolute_head, &absolute_track);		//计算CHS
-//    uint32_t eax =0x00000201,
-//            ecx = absolute_sector + 0x100 * absolute_track,
-//            edx = 0x100 * absolute_head;
-//    uint32_t ebx = offset;
-//    asm volatile(				//读扇区
-//    "int 0x13"
-//    ::"a"(eax),"b"(ebx),"c"(ecx),"d"(edx)
-//    :
-//    );
 }
 
 //加载引导扇区进内存
@@ -203,16 +182,6 @@ void Load_FAT(uint32_t begin, uint32_t FAT_In_Memory) {
     uint32_t now = begin;
 
     while (now >= 0x0002 && now <= 0x0FF6) {
-        // {	char test[12];
-        // 	int a = now,i=0;
-        // 	while (a){
-        // 		test[i] = a % 16 +'0';
-        // 			if (test[i] >'9') test[i] = test[i]-'9'+'A'-1;
-        // 		a = a/16;
-        // 		i++;
-        // 	}
-        // 	mprintf(test);
-        // }
         //把用户程序的当前簇读入内存
         uint32_t LBA = ClusterLBA(now);
         Read_Sector(offset, LBA + datasector);

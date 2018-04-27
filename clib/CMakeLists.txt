@@ -4,6 +4,8 @@ add_library(clib
         src/ctype.c
         include/ctype.h
         include/clib.h
+        include/Syscall.h
+        src/Syscall.cpp
         src/clib.c
         src/crt.c
         )
