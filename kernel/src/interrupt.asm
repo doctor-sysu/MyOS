@@ -197,24 +197,6 @@ User_Int1:
 
      iret
 
-User_Int3:
-    ;protect register
-    push gs
-    push fs
-    push es
-    push ds
-    push ebp
-    push edi
-    push esi
-    push edx
-    push ecx
-    push ebx
-    push eax
-    mov eax, 0xb8000
-    mov byte [eax], 'A'
-    pop eax
-    iret
-
 
 ; Below are the auxiliary functions
 extern kernel_sp
