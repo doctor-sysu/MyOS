@@ -3,7 +3,8 @@ BITS 32
 global Clock_interrupt
 extern printA
 global Keyboard_interrupt
-extern printOuch
+;extern printOuch
+extern create_new_process
 global Floppy_interrupt
 extern read_finished
 global User_Int1
@@ -16,6 +17,8 @@ global User_Int4
 extern print_World
 global Syscall
 extern callprocess
+
+extern kernel_sp
 
 [SECTION .text]
 Syscall:
@@ -82,7 +85,7 @@ Keyboard_interrupt:
     push ebx
     push eax
 
-    call printOuch
+    call create_new_process
 
     pop eax
     pop ebx
@@ -100,7 +103,12 @@ Keyboard_interrupt:
     push eax
     mov al, 0x20
     out 0x20, al
+    mov eax, esp
+    add eax, 12
+    ;mov kernel_sp, eax
     pop eax
+    ;set kernel_sp prepare for process call
+
     sti ; Re-enable interrupts
 
     iret
@@ -124,10 +132,6 @@ Clock_interrupt:
     push gs
     ;call the handler
     call callprocess
-    ;int 30h
-    ;int 31h
-    ;int 32h
-    ;int 33h
     ;reset register
     pop eax
     pop ebx
@@ -140,6 +144,9 @@ Clock_interrupt:
     pop es
     pop fs
     pop gs
+
+    call Turn_to_user_stack
+
     ; send eoi
     push eax
     in al, 60h
@@ -284,23 +291,7 @@ User_Int1:
  User_Int4:
      ;protect register
      push gs
-     push fsUser_Int3:
-    ;protect register
-    push gs
-    push fs
-    push es
-    push ds
-    push ebp
-    push edi
-    push esi
-    push edx
-    push ecx
-    push ebx
-    push eax
-    mov eax, 0xb8000
-    mov byte [eax], 'A'
-    pop eax
-    iret
+     push fs
      push es
      push ds
      push ebp
@@ -330,20 +321,32 @@ User_Int1:
 
 
 ; Below are the auxiliary functions
-extern kernel_sp
+
 Turn_to_kernel_stack:
     push eax
     mov eax, dword [esp+4]  ;put eip to kernel stack
-    mov dword [kernel_sp], eax
+    mov dword [kernel_sp-16], eax
     mov eax, dword [esp +8] ;put cs to kernel stack
-    mov dword [kernel_sp], eax
+    mov dword [kernel_sp-12], eax
     mov eax, dword [esp +12]    ;put eflags to kernel stack
-    mov dword [kernel_sp], eax
+    mov dword [kernel_sp-8], eax
     mov eax, esp
     add eax, 12
-    mov dword [kernel_sp + 16], eax
+    mov dword [kernel_sp - 4], eax
     mov eax, kernel_sp
-    add eax, 16
-    mov dword [esp], eax
+    sub eax, 20
+    mov esp, eax
+    pop eax
+    ret
+
+Turn_to_user_stack:
+    push eax
+    mov eax, dword [esp + 16]
+    mov esp, eax
+    mov eax, dword [kernel_sp - 8]
+    push eax
+    mov eax, dword [kernel_sp - 12]
+    push eax
+    mov eax, dword [kernel_sp - 16]
     pop eax
     ret

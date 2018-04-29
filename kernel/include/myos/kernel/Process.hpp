@@ -29,12 +29,14 @@ struct PCB {
 #pragma pack(pop)
 class Process{
 public:
+
     bool create();
     void exchange(PCB*&);
-private:
     Process();
-
-    PCB PCBList[10];
+private:
+    void change();
+    PCB* now;
+    PCB PCBList[20];
     unsigned int Process_Count;
 };
 

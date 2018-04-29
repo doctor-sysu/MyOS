@@ -166,7 +166,7 @@ int Find_File(char *file_name) {
 }
 
 //从扇区中读取FAT进内存
-void Load_FAT(uint32_t begin, uint32_t FAT_In_Memory) {
+void Load_FAT(uint32_t begin, uint32_t FAT_In_Memory, char file) {
     uint32_t i = 0;
     uint32_t memory = FAT_In_Memory;
     uint32_t number_of_FAT_sector = bpbSectorsPerFAT;
@@ -177,7 +177,7 @@ void Load_FAT(uint32_t begin, uint32_t FAT_In_Memory) {
     memory += bpbBytesPerSector;
     FAT_LBA++;
     //}
-    uint32_t offset = 0x200000;
+    uint32_t offset = static_cast<uint32_t>(0x200000 + 0x10000 * file);
 
     uint32_t now = begin;
 
@@ -249,7 +249,7 @@ int FAT12(char file) {
     _begin[0] = Root_Directory[file_In_Directory].DIR_FstClus[0];
     _begin[1] = Root_Directory[file_In_Directory].DIR_FstClus[1];
     uint32_t begin = _begin[0] + _begin[1] * 256u;
-    Load_FAT(begin, FAT_In_Memory);    //把FAT表加载入内存
+    Load_FAT(begin, FAT_In_Memory,file);    //把FAT表加载入内存
 
     //然后用簇计算出LBA然后读用户程序的一个簇，并把用户程序读入内存
     //然后跳到下一个簇，依次循环读用户程序，直到遇到0x0FF7或以上的停止读扇区。
@@ -257,7 +257,7 @@ int FAT12(char file) {
     asm volatile(
     "sti"
     );
-    return 0x200000;        //已经把用户程序加载到偏移量为 0x200000 处
+    return 0x200000 + 0x10000 * file;        //已经把用户程序加载到偏移量为 0x200000 处
 }
 
 }
