@@ -3,11 +3,12 @@
 #include <myos/kernel/Process.hpp>
 
 extern "C" void cpu_initialize();
+extern uint32_t kernel_sp;
 
-void showA() {
-    char *video = reinterpret_cast<char *>(0xb8000);
-    *(video) = 'A';
-}
+//void showA() {
+//    char *video = reinterpret_cast<char *>(0xb8000);
+//    *(video) = 'A';
+//}
 
 using myos::kernel::FAT12::FAT12;
 using myos::kernel::FAT12::Load_RD;
@@ -18,18 +19,14 @@ using myos::kernel::FAT12::Load_RD;
 extern "C" int main() {
     cpu_initialize();
     myos::kernel::IDT idt;
+    asm volatile(
+        "mov %0, esp"
+        :"=r"(kernel_sp)
+        );
     idt.Install();
     //char *video = reinterpret_cast<char *>(0xb8000);
     //*(video) = 'A';
     Load_RD();
-
-//    void *load = reinterpret_cast<void *>(FAT12((char) 1));
-//    uint32_t entry;
-//    //加载用户程序
-//    if (load >= 0) {
-//        entry = *(uint32_t *) ((uint8_t *) load + 0x18);
-//        ((void (*)()) entry)();
-//    }
 
     while (true) {
         asm volatile("nop");

@@ -1,5 +1,3 @@
-#include <myos/kernel/FAT12.hpp>
-#include <myos/kernel/Process.hpp>
 
 //printA
 static char *start = reinterpret_cast<char *>(0xb8000);
@@ -58,21 +56,6 @@ extern "C" void printOuch() {
         videomem += 2;
     }
     flag = 10;
-}
-
-static unsigned int now_process = 1;
-using myos::kernel::FAT12::FAT12;
-extern myos::kernel::Process processes;
-extern "C" void create_new_process(){
-    void *load = reinterpret_cast<void *>(FAT12((char) now_process));
-    unsigned int entry;
-    //加载用户程序
-    if (load >= 0) {
-        entry = *(unsigned int *) ((unsigned int*) load + 0x18);
-        processes.create();
-        //((void (*)()) entry)();
-    }
-    now_process++;
 }
 
 //windwill

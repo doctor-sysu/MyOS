@@ -5,6 +5,7 @@ global cpu_initialize
 
 ; void enterUserCode(void *targetAddr, void *targetESP)
 global cpu_enterUserCode
+global tss_interrupt
 
 [SECTION .text]
 cpu_initialize:
@@ -61,6 +62,17 @@ tss:
     DW 0 ; null
     DW 0 ; reserved
     DD 0 ; esp0, must be specified
+    DW 0x10 ; ss0
+    DW 0 ; reserved
+    TIMES 22 DD 0 ; garbage
+    DW 0
+    DW 0x68
+
+tss_interrupt:
+    ; See https://wiki.osdev.org/Task_State_Segment
+    DW 0 ; null
+    DW 0 ; reserved
+    DD 0x300000 ; esp0, must be specified
     DW 0x10 ; ss0
     DW 0 ; reserved
     TIMES 22 DD 0 ; garbage
