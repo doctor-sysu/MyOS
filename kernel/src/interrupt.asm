@@ -3,7 +3,7 @@ BITS 32
 global Clock_interrupt
 extern printA
 global Keyboard_interrupt
-;extern printOuch
+extern printOuch
 extern create_new_process
 global Floppy_interrupt
 extern read_finished
@@ -18,7 +18,6 @@ extern print_World
 global Syscall
 extern callprocess
 
-;extern kernel_sp
 extern tss_interrupt
 
 [SECTION .text]
@@ -74,8 +73,8 @@ Protect_reg:
     iret
 
 Keyboard_interrupt:
-    int 0x80
-    jmp .Keyboard_end
+    ;int 0x80
+    ;jmp .Keyboard_end
     cli
     push gs
     push fs
@@ -90,6 +89,7 @@ Keyboard_interrupt:
     push eax
 
     call create_new_process
+    ;call print_info
 
     pop eax
     pop ebx
@@ -103,36 +103,34 @@ Keyboard_interrupt:
     pop fs
     pop gs
 
-    .Keyboard_end:
+    ;.Keyboard_end:
     ; send EOI
     push eax
+    in al, 60h
     mov al, 0x20
     out 0x20, al
-    ;mov eax, esp
-    ;add eax, 12
-    ;mov kernel_sp, eax
     pop eax
     ;set kernel_sp prepare for process call
 
     sti ; Re-enable interrupts
-
     iret
 
 Clock_interrupt:
     ;protect register
     ;int 0x80
     cli
-    cmp esp, 0x200000
-    jle .End_interrupt_handle
+
+    ;cmp esp, 0x200000
+    ;jle .End_interrupt_handle
     ;call Turn_to_kernel_stack
         push eax
         push ebx
-        mov ebx, dword [tss_interrupt + 8]
-        mov eax, dword [esp+8]  ;put eip to kernel stack
+        mov ebx, dword [tss_interrupt]
+        mov eax, dword [esp+8]  ;put eip to interrupt stack
         mov dword [ebx-16], eax
-        mov eax, dword [esp +12] ;put cs to kernel stack
+        mov eax, dword [esp +12] ;put cs to interrupt stack
         mov dword [ebx-12], eax
-        mov eax, dword [esp +16]    ;put eflags to kernel stack
+        mov eax, dword [esp +16]    ;put eflags to interrupt stack
         mov dword [ebx-8], eax
         mov eax, esp
         add eax, 8
@@ -141,7 +139,7 @@ Clock_interrupt:
         pop eax
         ;mov eax, ebx
         ;sub eax, 16
-        mov esp, dword [tss_interrupt + 8]
+        mov esp, dword [tss_interrupt]
         sub esp, 16
 
     ;now the it is the kernel's stack
@@ -157,9 +155,11 @@ Clock_interrupt:
     push es
     push fs
     push gs
+    push esp
     ;call the handler
     call callprocess
     ;reset register
+    add esp, 4
     pop gs
     pop fs
     pop es
@@ -171,15 +171,14 @@ Clock_interrupt:
     pop eax
     pop ecx
     pop edx
-    mov dword [esp],edx
-    pop edx
+    add esp, 4 ;pop Error_code
 
     ;call Turn_to_user_stack
 
-        mov esp, dword [esp + 16]
+        mov esp, dword [esp + 12]
         push eax
         push ebx
-        mov ebx, dword [tss_interrupt + 8]
+        mov ebx, dword [tss_interrupt]
         mov eax, dword [ebx - 8]    ;eflags
         mov dword [esp - 16], eax
         mov eax, dword [ebx - 12]   ;cs
@@ -201,6 +200,11 @@ Clock_interrupt:
 
 Floppy_interrupt:
     cli
+    ;push eax
+    ;mov al, 0x20
+    ;out 0x20, al
+    ;pop eax
+
     ;protect register
     push gs
     push fs

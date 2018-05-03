@@ -41,7 +41,7 @@ struct PCB {
 class Process{
 public:
     bool create(uint32_t,uint32_t);
-    void exchange(PCB*&);
+    void exchange(PCB*);
     Process();
 private:
     void change();

@@ -1,7 +1,6 @@
 #include <myos/kernel/Process.hpp>
 #include <myos/kernel/FAT12.hpp>
 
-uint32_t kernel_sp = 0;
 myos::kernel::Process processes;
 
 extern "C" void callprocess(myos::kernel::PCB* progress)
@@ -34,12 +33,12 @@ bool Process::create(uint32_t file, uint32_t _start) {
     new_process->cs = _start;
     new_process->eip = 0;
     new_process->esp = 0x210000 + 0x20000 * (file-1);
-    new_process->eflags = 0x00000293;
+    new_process->eflags = 0x00000202;
     new_process->Error_code = 0;
     return true;
 }
 
-void Process::exchange(PCB*& progress) {
+void Process::exchange(PCB* progress) {
     if (!Process_Count)
         return;
     //Turn to Kernel stack

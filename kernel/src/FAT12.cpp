@@ -177,7 +177,7 @@ void Load_FAT(uint32_t begin, uint32_t FAT_In_Memory, char file) {
     memory += bpbBytesPerSector;
     FAT_LBA++;
     //}
-    uint32_t offset = static_cast<uint32_t>(0x200000 + 0x10000 * file);
+    uint32_t offset = static_cast<uint32_t>(0x200000 + 0x20000 * (file-1));
 
     uint32_t now = begin;
 
@@ -257,7 +257,7 @@ int FAT12(char file) {
     asm volatile(
     "sti"
     );
-    return 0x200000 + 0x10000 * file;        //已经把用户程序加载到偏移量为 0x200000 处
+    return 0x200000 + 0x20000 * (file-1);        //已经把用户程序加载到偏移量为 0x200000 处
 }
 
 }

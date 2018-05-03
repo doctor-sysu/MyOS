@@ -101,9 +101,9 @@ static int info_count = 40;
 static int info_state = 1;
 
 extern "C" void print_info() {
-    --info_count;
-    if (info_count)
-        return;
+//    --info_count;
+//    if (info_count)
+//        return;
     char *videomem_info = reinterpret_cast<char *>(0xb8000 + 2 * (80 * (info_y + 1) + info_x + 40));
     *(videomem_info) = info[index++];
     if (index == 40)

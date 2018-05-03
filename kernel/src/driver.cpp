@@ -120,11 +120,40 @@ bool readSector(uint8_t *dest, uint32_t LBA) {
     //open drive 0, enable controller, normal operation
     writeDOR(0b00011100);
     asm volatile(
-    "sti"
+    "mov al, 0b10111111\n"
+    "out 0x21, al\n"
+    "nop\n"
+    "nop\n"
+    "nop\n"
+    "nop\n"
+    "mov al, 0b10111111\n"
+    "out 0xA1, al\n"
+    "nop\n"
+    "nop\n"
+    "nop\n"
+    "nop\n"
+    "push eax\n"
+    "in al, 0x60\n"
+    "mov al, 0x20\n"
+    "out 0x20, al\n"
+    "pop eax\n"
+    "sti\n"
     );
     while (!finishReadSector);    // wait for the IRQ handler to run
     asm volatile(
-    "cli"
+    "cli\n"
+    "mov al, 0b00000000\n"
+    "out 0x21, al\n"
+    "nop\n"
+    "nop\n"
+    "nop\n"
+    "nop\n"
+    "mov al, 0b00000000\n"
+    "out 0xA1, al\n"
+    "nop\n"
+    "nop\n"
+    "nop\n"
+    "nop\n"
     );
     // SENSE_INTERRUPT : ack IRQ6, get status of last command
     send_cmd_ToFIFO(8);
@@ -146,11 +175,39 @@ bool readSector(uint8_t *dest, uint32_t LBA) {
 
     // wait for IRQ6, means the sector has been read
     asm volatile(
-    "sti"
+    "mov al, 0b10111111\n"
+    "out 0x21, al\n"
+    "nop\n"
+    "nop\n"
+    "nop\n"
+    "nop\n"
+    "mov al, 0b10111111\n"
+    "out 0xA1, al\n"
+    "nop\n"
+    "nop\n"
+    "nop\n"
+    "nop\n"
+//    "push eax\n"
+//    "mov al, 0x20\n"
+//    "out 0x20, al\n"
+//    "pop eax\n"
+    "sti\n"
     );
     while (!finishReadSector);
     asm volatile(
-    "cli"
+    "cli\n"
+    "mov al, 0b00000000\n"
+    "out 0x21, al\n"
+    "nop\n"
+    "nop\n"
+    "nop\n"
+    "nop\n"
+    "mov al, 0b00000000\n"
+    "out 0xA1, al\n"
+    "nop\n"
+    "nop\n"
+    "nop\n"
+    "nop\n"
     );
 
     // get some return from FIFO, if not, it will go wrong

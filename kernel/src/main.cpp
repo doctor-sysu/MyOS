@@ -3,7 +3,6 @@
 #include <myos/kernel/Process.hpp>
 
 extern "C" void cpu_initialize();
-extern uint32_t kernel_sp;
 
 //void showA() {
 //    char *video = reinterpret_cast<char *>(0xb8000);
@@ -19,10 +18,6 @@ using myos::kernel::FAT12::Load_RD;
 extern "C" int main() {
     cpu_initialize();
     myos::kernel::IDT idt;
-    asm volatile(
-        "mov %0, esp"
-        :"=r"(kernel_sp)
-        );
     idt.Install();
     //char *video = reinterpret_cast<char *>(0xb8000);
     //*(video) = 'A';
