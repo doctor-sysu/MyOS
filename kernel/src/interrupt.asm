@@ -1,10 +1,10 @@
 BITS 32
 
 global Clock_interrupt
-extern printA
+;extern printA
 global Keyboard_interrupt
-extern printOuch
-extern create_new_process
+;extern printOuch
+extern keyboard_input
 global Floppy_interrupt
 extern read_finished
 global User_Int1
@@ -17,8 +17,11 @@ global User_Int4
 extern print_World
 global Syscall
 extern callprocess
+global New_Process
+extern create_new_process
 
 extern tss_interrupt
+extern driving
 
 [SECTION .text]
 Syscall:
@@ -73,56 +76,11 @@ Protect_reg:
     iret
 
 Keyboard_interrupt:
-    ;int 0x80
-    ;jmp .Keyboard_end
-    cli
-    push gs
-    push fs
-    push es
-    push ds
-    push ebp
-    push edi
-    push esi
-    push edx
-    push ecx
-    push ebx
-    push eax
-
-    call create_new_process
-    ;call print_info
-
-    pop eax
-    pop ebx
-    pop ecx
-    pop edx
-    pop esi
-    pop edi
-    pop ebp
-    pop ds
-    pop es
-    pop fs
-    pop gs
-
-    ;.Keyboard_end:
-    ; send EOI
-    push eax
-    in al, 60h
-    mov al, 0x20
-    out 0x20, al
-    pop eax
-    ;set kernel_sp prepare for process call
-
-    sti ; Re-enable interrupts
-    iret
-
-Clock_interrupt:
     ;protect register
-    ;int 0x80
     cli
-
-    ;cmp esp, 0x200000
-    ;jle .End_interrupt_handle
-    ;call Turn_to_kernel_stack
+    cmp dword [driving], 0
+    jnz .End_keyboard_interrupt_handle
+    ;Turn_to_kernel_stack
         push eax
         push ebx
         mov ebx, dword [tss_interrupt]
@@ -151,19 +109,25 @@ Clock_interrupt:
     push ebp
     push esi
     push edi
+    push ss
     push ds
     push es
     push fs
     push gs
     push esp
-    ;call the handler
-    call callprocess
+
+    ;call print_info
+    ;call keyboard_input
+    ;int 0x30
+    call create_new_process
+
     ;reset register
     add esp, 4
     pop gs
     pop fs
     pop es
     pop ds
+    pop ss
     pop edi
     pop esi
     pop ebp
@@ -173,7 +137,7 @@ Clock_interrupt:
     pop edx
     add esp, 4 ;pop Error_code
 
-    ;call Turn_to_user_stack
+    ;Turn_to_user_stack
 
         mov esp, dword [esp + 12]
         push eax
@@ -188,7 +152,93 @@ Clock_interrupt:
         pop ebx
         pop eax
 
-    .End_interrupt_handle:
+    .End_keyboard_interrupt_handle:
+    ; send EOI
+    push eax
+    in al, 60h
+    mov al, 0x20
+    out 0x20, al
+    pop eax
+    ;set kernel_sp prepare for process call
+
+    sti ; Re-enable interrupts
+    iret
+
+Clock_interrupt:
+    ;protect register
+    cli
+    cmp dword [driving], 0
+    jnz .End_clock_interrupt_handle
+
+    ;Turn_to_kernel_stack
+        push eax
+        push ebx
+        mov ebx, dword [tss_interrupt]
+        mov eax, dword [esp+8]  ;put eip to interrupt stack
+        mov dword [ebx-16], eax
+        mov eax, dword [esp +12] ;put cs to interrupt stack
+        mov dword [ebx-12], eax
+        mov eax, dword [esp +16]    ;put eflags to interrupt stack
+        mov dword [ebx-8], eax
+        mov eax, esp
+        add eax, 8
+        mov dword [ebx - 4], eax
+        pop ebx
+        pop eax
+        ;mov eax, ebx
+        ;sub eax, 16
+        mov esp, dword [tss_interrupt]
+        sub esp, 16
+
+    ;now the it is the kernel's stack
+    push 0  ;Error_code
+    push edx
+    push ecx
+    push eax
+    push ebx
+    push ebp
+    push esi
+    push edi
+    push ss
+    push ds
+    push es
+    push fs
+    push gs
+    push esp
+    ;call the handler
+    call callprocess
+    ;reset register
+    add esp, 4
+    pop gs
+    pop fs
+    pop es
+    pop ds
+    pop ss
+    pop edi
+    pop esi
+    pop ebp
+    pop ebx
+    pop eax
+    pop ecx
+    pop edx
+    add esp, 4 ;pop Error_code
+
+    ;Turn_to_user_stack
+
+        mov esp, dword [esp + 12]
+        push eax
+        push ebx
+        mov ebx, dword [tss_interrupt]
+        mov eax, dword [ebx - 8]    ;eflags
+        mov dword [esp - 16], eax
+        mov eax, dword [ebx - 12]   ;cs
+        mov dword [esp - 12], eax
+        mov eax, dword [ebx - 16]   ;eip
+        mov dword [esp - 8], eax
+        pop ebx
+        pop eax
+
+    .End_clock_interrupt_handle:
     ; send eoi
     push eax
     in al, 60h
@@ -200,11 +250,6 @@ Clock_interrupt:
 
 Floppy_interrupt:
     cli
-    ;push eax
-    ;mov al, 0x20
-    ;out 0x20, al
-    ;pop eax
-
     ;protect register
     push gs
     push fs
@@ -368,6 +413,36 @@ User_Int1:
 
      iret
 
+New_Process:
+;protect register
+     push gs
+     push fs
+     push es
+     push ds
+     push ebp
+     push edi
+     push esi
+     push edx
+     push ecx
+     push ebx
+     push eax
+
+    call create_new_process
+
+     ;reset register
+     pop eax
+     pop ebx
+     pop ecx
+     pop edx
+     pop esi
+     pop edi
+     pop ebp
+     pop ds
+     pop es
+     pop fs
+     pop gs
+
+     iret
 
 ; Below are the auxiliary functions
 

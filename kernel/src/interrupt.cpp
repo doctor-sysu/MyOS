@@ -1,4 +1,6 @@
 
+#include <myos/kernel/Keyboard.hpp>
+
 //printA
 static char *start = reinterpret_cast<char *>(0xb8000);
 static int x = 0;
@@ -61,6 +63,12 @@ extern "C" void printOuch() {
 //windwill
 static int state = 1;
 static char *videomem_windwill = reinterpret_cast<char *>(0xb8000 + 2 * (5 * 80 + 20));
+
+//keyboard interrupt
+extern myos::kernel::Keyboard Keyboard_buffer;
+extern "C" void keyboard_input(){
+    Keyboard_buffer.kb_in();
+}
 
 //floppy interrupt
 extern bool finishReadSector;

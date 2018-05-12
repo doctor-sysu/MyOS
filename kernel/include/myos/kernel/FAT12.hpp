@@ -17,7 +17,7 @@ void printFile_Info();
 
 //judge whether finish reading sector
 
-bool readSector(uint8_t *, uint32_t);
+void readSector(uint8_t *, uint32_t);
 
 #define bpbBytesPerSector  512
 #define bpbRootEntries  224

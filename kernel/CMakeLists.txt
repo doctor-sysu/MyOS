@@ -21,7 +21,11 @@ add_executable(kernel
         src/driver.cpp
         src/FAT12.cpp
         include/myos/kernel/Process.hpp
-        src/Process.cpp)
+        src/Process.cpp
+        include/myos/kernel/Keyboard.hpp
+        src/Keyboard.cpp
+        include/myos/kernel/RW_port.hpp
+        src/RW_port.cpp)
 
 target_compile_options(kernel
         PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-m32 -masm=intel -ffreestanding -fno-stack-protector -fno-exceptions -fno-rtti -mno-red-zone>
@@ -35,4 +39,5 @@ set_target_properties(kernel PROPERTIES
         )
 target_link_libraries(kernel
         clib
+        cpplib
         )

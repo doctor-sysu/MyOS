@@ -11,6 +11,7 @@ extern "C" void User_Int2();
 extern "C" void User_Int3();
 extern "C" void User_Int4();
 extern "C" void Syscall();
+extern "C" void New_Process();
 
 void defaulthandler() {}
 
@@ -50,7 +51,8 @@ void IDT::Install() {
     AddInterrupt(50, 0, User_Int3);
     AddInterrupt(51, 0, User_Int4);
     AddInterrupt(0x80, 0, Syscall);
-
+    AddInterrupt(0x81, 0, New_Process);
+    
     asm volatile (
     "lidt [%0]\n"
     "sti\n"

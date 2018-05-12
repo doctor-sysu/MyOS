@@ -1,27 +1,36 @@
 #include <myos/kernel/Process.hpp>
 #include <myos/kernel/FAT12.hpp>
+#include <myos/kernel/Keyboard.hpp>
 
 myos::kernel::Process processes;
+extern myos::kernel::Keyboard Keyboard_buffer;
 
 extern "C" void callprocess(myos::kernel::PCB* progress)
 {
     processes.exchange(progress);
 }
 
-static unsigned int now_process = 1;
+static unsigned int now_process = 0;
 using myos::kernel::FAT12::FAT12;
-extern "C" void create_new_process(){
-    if (now_process >= 5)
+void __cpp_create_new_process(){
+    Keyboard_buffer.kb_in();
+    if (Keyboard_buffer.size() < 2) return;
+    if (now_process >= 4)
         return;
-    void *load = reinterpret_cast<void *>(FAT12((char) now_process));
+    void *load = reinterpret_cast<void *>(FAT12((char) (now_process+1)));
     unsigned int entry;
     //加载用户程序
-    if (load >= 0) {
+    if (load > 0) {
         entry = *(unsigned int *) ((unsigned int*) load + 0x18);
         processes.create(now_process,entry);
         //((void (*)()) entry)();
     }
     now_process++;
+    Keyboard_buffer.clean();
+}
+
+extern "C" void create_new_process(){
+    __cpp_create_new_process();
 }
 
 namespace myos{
@@ -32,7 +41,7 @@ bool Process::create(uint32_t file, uint32_t _start) {
     Process_Count++;
     new_process->cs = _start;
     new_process->eip = 0;
-    new_process->esp = 0x210000 + 0x20000 * (file-1);
+    new_process->esp = 0x210000 + 0x20000 * file;
     new_process->eflags = 0x00000202;
     new_process->Error_code = 0;
     return true;

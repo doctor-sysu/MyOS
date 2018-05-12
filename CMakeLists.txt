@@ -5,6 +5,7 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 11)
 
 add_subdirectory(clib)
+add_subdirectory(cpplib)
 add_subdirectory(kernel)
 add_subdirectory(user)
 

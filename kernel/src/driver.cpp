@@ -1,4 +1,5 @@
 #include <myos/kernel/FAT12.hpp>
+#include <myos/kernel/RW_port.hpp>
 #include <clib.h>
 
 // standard base address of the primary floppy controller
@@ -10,28 +11,15 @@ uint16_t DATA_FIFO = 0x3f5;               //base + 5
 uint16_t MAIN_STATUS_REGISTER = 0x3f4;    //base + 4
 void *buffer = nullptr;
 bool finishReadSector;
+uint32_t driving;
 
 namespace myos {
 namespace kernel {
 namespace FAT12 {
 
 
-uint8_t in(uint32_t port) { //read data form port
-    uint8_t data = 0;
-    asm volatile(
-    "in %0, dx"
-    :"=r"(data)
-    :"d"(port)
-    );
-    return data;
-}
-
-void out(uint32_t port, uint8_t data) {  //write data to port
-    asm volatile(
-    "out dx, al"
-    ::"d"(port), "a"(data)
-    );
-}
+using myos::kernel::RW_port::in;
+using myos::kernel::RW_port::out;
 
 void LBA_To_CHS(const uint32_t LAB, uint32_t *absolute_sector,
                 uint32_t *absolute_head, uint32_t *absolute_track) {
@@ -104,7 +92,8 @@ void memCopy(void *dest, const void *buf, uint16_t len) {
     }
 }
 
-bool readSector(uint8_t *dest, uint32_t LBA) {
+void readSector(uint8_t *dest, uint32_t LBA) {
+    driving = 1;
     setupDMA();
 
     //get absolute address
@@ -119,21 +108,9 @@ bool readSector(uint8_t *dest, uint32_t LBA) {
     }
     //open drive 0, enable controller, normal operation
     writeDOR(0b00011100);
+
     asm volatile(
-    "mov al, 0b10111111\n"
-    "out 0x21, al\n"
-    "nop\n"
-    "nop\n"
-    "nop\n"
-    "nop\n"
-    "mov al, 0b10111111\n"
-    "out 0xA1, al\n"
-    "nop\n"
-    "nop\n"
-    "nop\n"
-    "nop\n"
     "push eax\n"
-    "in al, 0x60\n"
     "mov al, 0x20\n"
     "out 0x20, al\n"
     "pop eax\n"
@@ -142,18 +119,6 @@ bool readSector(uint8_t *dest, uint32_t LBA) {
     while (!finishReadSector);    // wait for the IRQ handler to run
     asm volatile(
     "cli\n"
-    "mov al, 0b00000000\n"
-    "out 0x21, al\n"
-    "nop\n"
-    "nop\n"
-    "nop\n"
-    "nop\n"
-    "mov al, 0b00000000\n"
-    "out 0xA1, al\n"
-    "nop\n"
-    "nop\n"
-    "nop\n"
-    "nop\n"
     );
     // SENSE_INTERRUPT : ack IRQ6, get status of last command
     send_cmd_ToFIFO(8);
@@ -175,39 +140,15 @@ bool readSector(uint8_t *dest, uint32_t LBA) {
 
     // wait for IRQ6, means the sector has been read
     asm volatile(
-    "mov al, 0b10111111\n"
-    "out 0x21, al\n"
-    "nop\n"
-    "nop\n"
-    "nop\n"
-    "nop\n"
-    "mov al, 0b10111111\n"
-    "out 0xA1, al\n"
-    "nop\n"
-    "nop\n"
-    "nop\n"
-    "nop\n"
-//    "push eax\n"
-//    "mov al, 0x20\n"
-//    "out 0x20, al\n"
-//    "pop eax\n"
+    "push eax\n"
+    "mov al, 0x20\n"
+    "out 0x20, al\n"
+    "pop eax\n"
     "sti\n"
     );
     while (!finishReadSector);
     asm volatile(
     "cli\n"
-    "mov al, 0b00000000\n"
-    "out 0x21, al\n"
-    "nop\n"
-    "nop\n"
-    "nop\n"
-    "nop\n"
-    "mov al, 0b00000000\n"
-    "out 0xA1, al\n"
-    "nop\n"
-    "nop\n"
-    "nop\n"
-    "nop\n"
     );
 
     // get some return from FIFO, if not, it will go wrong
@@ -216,8 +157,8 @@ bool readSector(uint8_t *dest, uint32_t LBA) {
     }
     //copy a sector to expected memory
     memCopy(dest, buffer, 512);
+    driving = 0;
 
-    return true;
 }
 
 }
