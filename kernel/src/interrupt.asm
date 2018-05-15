@@ -144,11 +144,11 @@ Keyboard_interrupt:
         push ebx
         mov ebx, dword [tss_interrupt]
         mov eax, dword [ebx - 8]    ;eflags
-        mov dword [esp - 16], eax
+        mov dword [esp + 16], eax
         mov eax, dword [ebx - 12]   ;cs
-        mov dword [esp - 12], eax
+        mov dword [esp + 12], eax
         mov eax, dword [ebx - 16]   ;eip
-        mov dword [esp - 8], eax
+        mov dword [esp + 8], eax
         pop ebx
         pop eax
 
@@ -230,11 +230,11 @@ Clock_interrupt:
         push ebx
         mov ebx, dword [tss_interrupt]
         mov eax, dword [ebx - 8]    ;eflags
-        mov dword [esp - 16], eax
+        mov dword [esp + 16], eax
         mov eax, dword [ebx - 12]   ;cs
-        mov dword [esp - 12], eax
+        mov dword [esp + 12], eax
         mov eax, dword [ebx - 16]   ;eip
-        mov dword [esp - 8], eax
+        mov dword [esp + 8], eax
         pop ebx
         pop eax
 

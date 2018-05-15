@@ -3,6 +3,7 @@
 #include <myos/kernel/Process.hpp>
 
 extern "C" void cpu_initialize();
+extern myos::kernel::Process processes;
 
 //void showA() {
 //    char *video = reinterpret_cast<char *>(0xb8000);
@@ -19,6 +20,7 @@ extern "C" int main() {
     cpu_initialize();
     myos::kernel::IDT idt;
     idt.Install();
+    processes.initial();
     //char *video = reinterpret_cast<char *>(0xb8000);
     //*(video) = 'A';
     Load_RD();

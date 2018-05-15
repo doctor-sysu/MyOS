@@ -39,11 +39,25 @@ namespace kernel{
 bool Process::create(uint32_t file, uint32_t _start) {
     PCB* new_process = &PCBList[Process_Count];
     Process_Count++;
-    new_process->cs = _start;
-    new_process->eip = 0;
+    new_process->cs = 0x08;
+    new_process->gs = 0x10;
+    new_process->fs = 0x10;
+    new_process->ss = 0x10;
+    new_process->ds = 0x10;
+    new_process->es = 0x10;
+    new_process->eip = _start;
     new_process->esp = 0x210000 + 0x20000 * file;
+    new_process->ebp = new_process->esp;
     new_process->eflags = 0x00000202;
     new_process->Error_code = 0;
+    asm volatile(
+            "mov dword [edx], eax\n"
+            "mov dword [edx - 4], ebx\n"
+            "mov dword [edx - 8], ecx\n"
+            ::"a"(new_process->eflags), "b"(new_process->cs)
+                ,"c"(new_process->eip), "d"(new_process->esp)
+            );
+    new_process->esp -= 8;
     return true;
 }
 
@@ -62,18 +76,25 @@ void Process::exchange(PCB* progress) {
 
 }
 
-Process::Process():Process_Count(0),now(nullptr) {}
+Process::Process():Process_Count(0),now(nullptr),running(-1) {}
+
+void Process::initial(){
+    running = -1;
+}
 
 void Process::change(){
     if (Process_Count == 0) return;
-    for (int i=0; i< Process_Count - 1; i++){
-        if (now == &PCBList[i]){
-            PCBList[i] = *now;
-            now = &PCBList[i+1];
-            return;
-        }
+    if (running == -1) {
+        now = &PCBList[0];
+        running++;
+        return;
     }
-    now = &PCBList[0];
+    if (running < Process_Count){
+        PCBList[running] = *now;
+        running++;
+        if (running == Process_Count) running = 0;
+            now = &PCBList[running];
+    }
 }
 
 

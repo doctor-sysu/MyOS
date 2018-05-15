@@ -180,7 +180,7 @@ void Load_FAT(uint32_t begin, uint32_t FAT_In_Memory, char file) {
     uint32_t offset = static_cast<uint32_t>(0x200000 + 0x20000 * (file-1));
 
     uint32_t now = begin;
-    return;
+
     while (now >= 0x0002 && now <= 0x0FF6) {
         //把用户程序的当前簇读入内存
         uint32_t LBA = ClusterLBA(now);
