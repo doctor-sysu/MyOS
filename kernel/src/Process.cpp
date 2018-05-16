@@ -33,6 +33,11 @@ extern "C" void create_new_process(){
     __cpp_create_new_process();
 }
 
+extern "C" void kill_process(myos::kernel::PCB* progress){
+    //processes.exchange(progress);
+    processes.kill(progress);
+}
+
 namespace myos{
 namespace kernel{
 
@@ -62,38 +67,54 @@ bool Process::create(uint32_t file, uint32_t _start) {
 }
 
 void Process::exchange(PCB* progress) {
-    if (!Process_Count)
+    if (!Process_Count) {
+        //put kernel into PCBList[SIZE_OF_PCBList]
+        PCBList[SIZE_OF_PCBList] = *progress;
         return;
+    }
     //Turn to Kernel stack
     //save all registers to kernel stack
     //save all registers to PCB
-    (*now) = *progress;
-    change();
-    (*progress) = (*now);
+    change(progress);
     //get new progress's registers to kernel stack
     //assign registers
     //turn to progress stack
-
 }
 
-Process::Process():Process_Count(0),now(nullptr),running(-1) {}
+Process::Process():Process_Count(0),running(-1) {}
 
 void Process::initial(){
     running = -1;
 }
 
-void Process::change(){
+void Process::kill(PCB* progress) {
+    for (int i = running; i < Process_Count - 1; i++) {
+        PCBList[i] = PCBList[i + 1];
+    }
+    Process_Count--;
+    if (!Process_Count) {
+        running = -1;
+        *progress = PCBList[SIZE_OF_PCBList];  //change to the kernel
+    } else{
+        if (Process_Count == running)
+            running = 0;
+        *progress = PCBList[running];
+    }
+}
+
+void Process::change(PCB* progress){
     if (Process_Count == 0) return;
     if (running == -1) {
-        now = &PCBList[0];
         running++;
+        *progress = PCBList[0];
         return;
     }
     if (running < Process_Count){
-        PCBList[running] = *now;
+        PCBList[running] = *progress;
         running++;
-        if (running == Process_Count) running = 0;
-            now = &PCBList[running];
+        if (running == Process_Count)
+            running = 0;
+        *progress = PCBList[running];
     }
 }
 

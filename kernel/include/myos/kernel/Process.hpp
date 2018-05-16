@@ -5,6 +5,8 @@
 namespace myos{
 namespace kernel{
 
+#define SIZE_OF_PCBList 30
+
 #pragma pack(push, 1)
 struct PCB {
     PCB():gs(0x10),fs(0x10),es(0x10),ds(0x10),ss(0x10),edi(0),esi(0),ebp(0),
@@ -44,11 +46,11 @@ public:
     bool create(uint32_t,uint32_t);
     void exchange(PCB*);
     void initial();
+    void kill(PCB*);        //kill the running process
     Process();
 private:
-    void change();
-    PCB* now;
-    PCB PCBList[20];
+    void change(PCB*);
+    PCB PCBList[SIZE_OF_PCBList + 1];
     int32_t running;
     unsigned int Process_Count;
 };

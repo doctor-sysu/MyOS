@@ -15,16 +15,20 @@ global User_Int3
 extern print_Hello
 global User_Int4
 extern print_World
-global Syscall
+global SC_printSomething
 extern callprocess
 global New_Process
 extern create_new_process
+global End_Process
+extern kill_process
+
 
 extern tss_interrupt
 extern driving
 
 [SECTION .text]
-Syscall:
+SC_printSomething:
+    pop eax
     push gs
     push fs
     push es
@@ -442,6 +446,82 @@ New_Process:
      pop fs
      pop gs
 
+     iret
+
+End_Process:
+;protect register
+    cli
+;.wait_to_continue:
+;    cmp dword [driving], 0
+;    jnz .wait_to_continue
+    ;Turn_to_kernel_stack
+        push eax
+        push ebx
+        mov ebx, dword [tss_interrupt]
+        mov eax, dword [esp+8]  ;put eip to interrupt stack
+        mov dword [ebx-16], eax
+        mov eax, dword [esp +12] ;put cs to interrupt stack
+        mov dword [ebx-12], eax
+        mov eax, dword [esp +16]    ;put eflags to interrupt stack
+        mov dword [ebx-8], eax
+        mov eax, esp
+        add eax, 8
+        mov dword [ebx - 4], eax
+        pop ebx
+        pop eax
+        mov esp, dword [tss_interrupt]
+        sub esp, 16
+
+    ;now the it is the kernel's stack
+    push 0  ;Error_code
+    push edx
+    push ecx
+    push eax
+    push ebx
+    push ebp
+    push esi
+    push edi
+    push ss
+    push ds
+    push es
+    push fs
+    push gs
+    push esp
+
+    call kill_process
+
+;reset register
+    add esp, 4
+    pop gs
+    pop fs
+    pop es
+    pop ds
+    pop ss
+    pop edi
+    pop esi
+    pop ebp
+    pop ebx
+    pop eax
+    pop ecx
+    pop edx
+    add esp, 4 ;pop Error_code
+
+    ;Turn_to_user_stack
+
+        mov esp, dword [esp + 12]
+        push eax
+        push ebx
+        mov ebx, dword [tss_interrupt]
+        mov eax, dword [ebx - 8]    ;eflags
+        mov dword [esp + 16], eax
+        mov eax, dword [ebx - 12]   ;cs
+        mov dword [esp + 12], eax
+        mov eax, dword [ebx - 16]   ;eip
+        mov dword [esp + 8], eax
+        pop ebx
+        pop eax
+
+     sti
      iret
 
 ; Below are the auxiliary functions

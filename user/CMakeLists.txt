@@ -19,4 +19,21 @@ set_target_properties(letter1 PROPERTIES
         )
 target_link_libraries(letter1
         clib
+        cpplib
         )
+
+#add_executable(letter2
+#        letter2.cpp
+#        )
+#
+#target_compile_options(letter2
+#        PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-m32 -masm=intel -ffreestanding -fno-stack-protector -fno-exceptions -fno-rtti -mno-red-zone>
+#        )
+#set_target_properties(letter2 PROPERTIES
+#        LINK_FLAGS "-m32 -nostdlib -nostartfiles -Wl,-T${CMAKE_CURRENT_SOURCE_DIR}/linker.ld"
+#        LINK_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/linker.ld
+#        )
+#target_link_libraries(letter2
+#        clib
+#        )
+

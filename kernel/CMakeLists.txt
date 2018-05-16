@@ -25,7 +25,10 @@ add_executable(kernel
         include/myos/kernel/Keyboard.hpp
         src/Keyboard.cpp
         include/myos/kernel/RW_port.hpp
-        src/RW_port.cpp)
+        src/RW_port.cpp
+        src/Syscall.cpp
+        src/Syscall.asm
+        )
 
 target_compile_options(kernel
         PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-m32 -masm=intel -ffreestanding -fno-stack-protector -fno-exceptions -fno-rtti -mno-red-zone>

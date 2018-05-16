@@ -3,6 +3,8 @@ project(myos-cpplib)
 add_library(cpplib
         include/Queue.hpp
         src/Queue.cpp
+        include/System.hpp
+        src/System.cpp
         )
 
 target_compile_options(cpplib
