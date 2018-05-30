@@ -8,8 +8,8 @@ namespace kernel{
 
 uint32_t Process::create(uint32_t _start) {
     uint32_t userStack = _start + 0x10000;
-    PCB* new_process = &PCBList[Process_Count];
     Process_Count++;
+    PCB* new_process = &PCBList[Process_Count];
     new_process->cs = 0x1B;
     new_process->gs = 0x23;
     new_process->fs = 0x23;
@@ -38,7 +38,7 @@ uint32_t Process::create(uint32_t _start) {
 }
 
 void Process::exchange(PCB* progress) {
-    if (!Process_Count) {
+    if (Process_Count<0) {
         //put kernel into PCBList[SIZE_OF_PCBList]
         //PCBList[SIZE_OF_PCBList] = *progress;
         return;
@@ -47,7 +47,7 @@ void Process::exchange(PCB* progress) {
     //save all registers to kernel stack
     //save all registers to PCB
 
-    //change(progress);
+    change(progress);
 
     //get new progress's registers to kernel stack
     //assign registers
@@ -55,10 +55,11 @@ void Process::exchange(PCB* progress) {
     //cpu_enterUserCode(progress->eip, progress->esp);
 }
 
-Process::Process():Process_Count(0),running(-1) {}
+Process::Process():Process_Count(-1),running(-1) {}
 
 void Process::initial(){
     running = -1;
+    Process_Count = -1;
 }
 
 void Process::kill(PCB* progress) {
@@ -77,12 +78,12 @@ void Process::kill(PCB* progress) {
 }
 
 void Process::change(PCB* progress){
-    if (Process_Count == 0) return;
     if (running == -1) {
         running++;
         *progress = PCBList[0];
         return;
     }
+    if (Process_Count <= 0) return;
     if (running < Process_Count){
         PCBList[running] = *progress;
         running++;

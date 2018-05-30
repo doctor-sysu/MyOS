@@ -7,7 +7,7 @@ namespace  myos {
 namespace kernel {
 namespace FAT12 {
 
-int FAT12(char* file);
+void* FAT12(char* file);
 
 uint32_t mgetchar();
 

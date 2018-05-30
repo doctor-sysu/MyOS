@@ -11,27 +11,28 @@ using myos::kernel::Syscall::syscall;
 extern myos::kernel::Process processes;
 extern myos::kernel::Keyboard Keyboard_buffer;
 extern bool finishReadSector;
+
 extern "C" void cpu_enterUserCode(uint32_t address, uint32_t stack_base);
 
-namespace myos{
-namespace kernel{
-namespace interrupt{
+namespace myos {
+namespace kernel {
+namespace interrupt {
 
 //keyboard interrupt
-void __cpp_create_new_process(){
+void __cpp_create_new_process() {
     static unsigned int now_process = 0;
     Keyboard_buffer.kb_in();
     if (Keyboard_buffer.size() < 2) return;
     if (now_process >= 2)
         return;
-    char* userName = const_cast<char *>("LETTER0 EXE\0");
-    void *load = reinterpret_cast<void *>
-        (myos::kernel::FAT12:: FAT12(userName));
+    char *userName = const_cast<char *>("LETTER0 EXE\0");
+    uintptr_t load = reinterpret_cast<uintptr_t>
+    (myos::kernel::FAT12::FAT12(userName));
     unsigned int entry;
     //加载用户程序
     if (load > 0) {
-        entry = *(unsigned int *) ((unsigned int*) load + 0x18);
-        processes.create(entry);
+        //entry = *(unsigned int *) ((unsigned int *) load + 0x18);
+        processes.create(*(reinterpret_cast<uint32_t *>(load + 0x18)));
         //((void (*)()) entry)();
     }
     now_process++;
@@ -39,49 +40,53 @@ void __cpp_create_new_process(){
 }
 
 //clock interrupt
-void callprocess(myos::kernel::PCB* progress)
-{
+void callprocess(myos::kernel::PCB *progress) {
     processes.exchange(progress);
 }
 
 //aimming keyboard interrupt
-void keyboard_input(){
+void keyboard_input() {
     Keyboard_buffer.kb_in();
 }
 
 //floppy interrupt
-void read_finished(){
+void read_finished() {
     finishReadSector = true;
 }
 
-void enterKernelUser(){
+void enterKernelUser(PCB *progress) {
     char name[13] = "KERP    EXE\0";
-    void *load = reinterpret_cast<void *>
-        (myos::kernel::FAT12:: FAT12(name));
-    unsigned int entry = 0, userStack = 0;
+    uintptr_t load = reinterpret_cast<uintptr_t>
+        (myos::kernel::FAT12::FAT12(name));
     //加载用户程序
     if (load > 0) {
-        entry = *(unsigned int *) ((unsigned int*) load + 0x18);
-        userStack = processes.create(entry);
+        processes.create(*(reinterpret_cast<uint32_t *>(load + 0x18)));
     }
 
     //enter the kernel process, this will not exit except terminal the OS
-    cpu_enterUserCode(entry, userStack);
+    //cpu_enterUserCode(entry, userStack);
+    processes.exchange(progress);
 }
 
-void _interruptHandle(uint32_t interruptNumber, PCB* progress){
-    switch (interruptNumber){
-        case 0x20: callprocess(progress);
+void _interruptHandle(uint32_t interruptNumber, PCB *progress) {
+    switch (interruptNumber) {
+        case 0x20:
+            callprocess(progress);
             break;
-        case 0x21: __cpp_create_new_process();
+        case 0x21:
+            __cpp_create_new_process();
             break;
-        case 0x26: read_finished();
+        case 0x26:
+            read_finished();
             break;
-        case 0x7f: enterKernelUser();
+        case 0x7f:
+            enterKernelUser(progress);
             break;
-        case 0x80: syscall(progress);
+        case 0x80:
+            syscall(progress);
             break;
-        case 0x81: __cpp_create_new_process();
+        case 0x81:
+            __cpp_create_new_process();
             break;
         default: //default handle
             break;
@@ -92,8 +97,8 @@ void _interruptHandle(uint32_t interruptNumber, PCB* progress){
 }
 }
 
-extern "C" void interruptHandle(uint32_t interruptNumber, PCB* process){
-    myos::kernel::interrupt::_interruptHandle(interruptNumber,process);
+extern "C" void interruptHandle(uint32_t interruptNumber, PCB *process) {
+    myos::kernel::interrupt::_interruptHandle(interruptNumber, process);
 }
 
 //printA

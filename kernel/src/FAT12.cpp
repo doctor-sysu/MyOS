@@ -226,7 +226,7 @@ void Load_RD() {
 }
 
 //主函数，返回文件信息
-int FAT12(char* file) {
+void* FAT12(char* file) {
     static char num = 0;
     asm volatile(
     "cli"
@@ -256,7 +256,7 @@ int FAT12(char* file) {
 //    asm volatile(
 //    "sti"
 //    );
-    return 0x200000 + 0x20000 * (num);        //已经把用户程序加载到偏移量为 0x200000 处
+    return reinterpret_cast<void *>(0x200000 + 0x20000 * (num));        //已经把用户程序加载到偏移量为 0x200000 处
 }
 
 }

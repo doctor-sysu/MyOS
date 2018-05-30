@@ -569,8 +569,6 @@ preInterruptHandle:
     pop edx
     add esp, 4 ;pop Error_code
 
-    ;mov [tss + 4], esp
-
     .End_interrupt_handle:
     ; send EOI
     push eax

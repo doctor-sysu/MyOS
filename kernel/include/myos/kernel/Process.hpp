@@ -53,7 +53,7 @@ private:
     void change(PCB*);
     PCB PCBList[SIZE_OF_PCBList + 1];
     int32_t running;
-    unsigned int Process_Count;
+    int32_t Process_Count;
 };
 
 }

@@ -6,7 +6,7 @@ extern main
 [SECTION .text]
 
 kernel_start:
-    mov ebp, 0x200000
+    mov ebp, 0x1fffff
     mov esp, ebp
 
     call main
