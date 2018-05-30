@@ -8,10 +8,14 @@ add_subdirectory(clib)
 add_subdirectory(cpplib)
 add_subdirectory(kernel)
 add_subdirectory(user)
+add_subdirectory(KernelProcess)
 
 add_custom_command(
         OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/myos.img
-        DEPENDS kernel letter1
+        DEPENDS kernel
+        DEPENDS kerp
+        DEPENDS letter1
+        DEPENDS letter2
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         COMMAND ./pack.sh ${CMAKE_CURRENT_BINARY_DIR}
 )

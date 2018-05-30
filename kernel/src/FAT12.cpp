@@ -166,7 +166,7 @@ int Find_File(char *file_name) {
 }
 
 //从扇区中读取FAT进内存
-void Load_FAT(uint32_t begin, uint32_t FAT_In_Memory, char file) {
+void Load_FAT(uint32_t begin, uint32_t FAT_In_Memory, char num) {
     uint32_t i = 0;
     uint32_t memory = FAT_In_Memory;
     uint32_t number_of_FAT_sector = bpbSectorsPerFAT;
@@ -177,7 +177,7 @@ void Load_FAT(uint32_t begin, uint32_t FAT_In_Memory, char file) {
     memory += bpbBytesPerSector;
     FAT_LBA++;
     //}
-    uint32_t offset = static_cast<uint32_t>(0x200000 + 0x20000 * (file-1));
+    uint32_t offset = static_cast<uint32_t>(0x200000 + 0x20000 * num);
 
     uint32_t now = begin;
 
@@ -226,19 +226,20 @@ void Load_RD() {
 }
 
 //主函数，返回文件信息
-int FAT12(char file) {
+int FAT12(char* file) {
+    static char num = 0;
     asm volatile(
     "cli"
     );
     //找到目标文件在根目录中的位置,在root_directory中搜索文件
-    char file_name[13] = "LETTER0 EXE\0";
-    file_name[6] = static_cast<char>(file + 48u);
-    int file_In_Directory = Find_File(file_name);
+    //char file_name[13] = "LETTER0 EXE\0";
+    //file_name[6] = static_cast<char>(file + 48u);
+    int file_In_Directory = Find_File(file);
     if (file_In_Directory == -1) {
         asm volatile(
         "sti"
         );
-        return -1;
+        return 0;
     }
     //先加载FAT表进内存，然后放到FAT数组FAT_List里
     uint32_t FAT_In_Memory = 0x7000;
@@ -247,15 +248,15 @@ int FAT12(char file) {
     _begin[0] = Root_Directory[file_In_Directory].DIR_FstClus[0];
     _begin[1] = Root_Directory[file_In_Directory].DIR_FstClus[1];
     uint32_t begin = _begin[0] + _begin[1] * 256u;
-    Load_FAT(begin, FAT_In_Memory,file);    //把FAT表加载入内存
+    Load_FAT(begin, FAT_In_Memory,num);    //把FAT表加载入内存
 
     //然后用簇计算出LBA然后读用户程序的一个簇，并把用户程序读入内存
     //然后跳到下一个簇，依次循环读用户程序，直到遇到0x0FF7或以上的停止读扇区。
     //这样一来，用户程序就在内存里了。
-    asm volatile(
-    "sti"
-    );
-    return 0x200000 + 0x20000 * (file-1);        //已经把用户程序加载到偏移量为 0x200000 处
+//    asm volatile(
+//    "sti"
+//    );
+    return 0x200000 + 0x20000 * (num);        //已经把用户程序加载到偏移量为 0x200000 处
 }
 
 }

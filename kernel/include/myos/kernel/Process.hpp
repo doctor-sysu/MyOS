@@ -9,7 +9,7 @@ namespace kernel{
 
 #pragma pack(push, 1)
 struct PCB {
-    PCB():gs(0x10),fs(0x10),es(0x10),ds(0x10),ss(0x10),edi(0),esi(0),ebp(0),
+    PCB():gs(0),fs(0),es(0),ds(0),ss(0),edi(0),esi(0),ebp(0),
           ebx(0),eax(0),ecx(0),edx(0),Error_code(0),eip(0),
           cs(0),eflags(0),esp(0){}
     PCB& operator=(const PCB& copy){
@@ -23,7 +23,7 @@ struct PCB {
     uint32_t fs;
     uint32_t es;
     uint32_t ds;
-    uint32_t ss;
+
     uint32_t edi;
     uint32_t esi;
     uint32_t ebp;
@@ -38,12 +38,13 @@ struct PCB {
     uint32_t cs;
     uint32_t eflags;
     uint32_t esp;
+    uint32_t ss;
 };
 
 #pragma pack(pop)
 class Process{
 public:
-    bool create(uint32_t,uint32_t);
+    uint32_t create(uint32_t);
     void exchange(PCB*);
     void initial();
     void kill(PCB*);        //kill the running process

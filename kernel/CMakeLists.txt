@@ -13,8 +13,8 @@ add_executable(kernel
         include/myos/kernel/IDT.hpp
         include/cstdint
         include/cstddef
-        src/interrupt.asm
-        src/interrupt.cpp
+#        src/interrupt/interrupt.asm
+        src/interrupt/interrupt.cpp
         src/start.asm
         src/multiboot.asm
         include/myos/kernel/FAT12.hpp
@@ -26,8 +26,9 @@ add_executable(kernel
         src/Keyboard.cpp
         include/myos/kernel/RW_port.hpp
         src/RW_port.cpp
-        src/Syscall.cpp
-        src/Syscall.asm
+        src/interrupt/Syscall.cpp
+        src/interrupt/preinterruptHandle.asm
+        src/interrupt/Syscall.hpp
         )
 
 target_compile_options(kernel

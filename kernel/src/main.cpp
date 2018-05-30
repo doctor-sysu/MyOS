@@ -1,6 +1,7 @@
 #include <myos/kernel/IDT.hpp>
 #include <myos/kernel/FAT12.hpp>
 #include <myos/kernel/Process.hpp>
+#include <System.hpp>
 
 extern "C" void cpu_initialize();
 extern myos::kernel::Process processes;
@@ -16,6 +17,18 @@ using myos::kernel::FAT12::Load_RD;
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
 
+void sleep() {
+    for (int i = 0; i < 100000; ++i) {
+        asm volatile("nop");
+    }
+}
+
+void LoadKernelProcess(){
+    asm volatile(
+            "int 0x7f"
+            );
+}
+
 extern "C" int main() {
     cpu_initialize();
     myos::kernel::IDT idt;
@@ -24,6 +37,12 @@ extern "C" int main() {
     //char *video = reinterpret_cast<char *>(0xb8000);
     //*(video) = 'A';
     Load_RD();
+    LoadKernelProcess();
+//    for(int i = 0; i < 100000; ++i) {
+//        for (int j = 1; j < 5; ++j)
+//               SysC(j);
+//        sleep();
+//    }
 
     while (true) {
         asm volatile("nop");

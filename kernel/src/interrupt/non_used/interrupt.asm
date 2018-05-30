@@ -10,7 +10,8 @@ extern read_finished
 global User_Int1
 extern windmill
 global User_Int2
-extern print_info
+extern windmill2
+;extern print_info
 global User_Int3
 extern print_Hello
 global User_Int4
@@ -28,18 +29,21 @@ extern driving
 
 [SECTION .text]
 SC_printSomething:
-    pop eax
+    ;pop eax
+    push ebp
+    push eax
+    mov ebp, esp
+    mov eax, dword[ebp + 12]
     push gs
     push fs
     push es
     push ds
-    push ebp
+    ;push ebp
     push edi
     push esi
     push edx
     push ecx
     push ebx
-    push eax
 
     cmp eax, 1
     je Fun1
@@ -50,34 +54,43 @@ SC_printSomething:
     jmp Fun4
 
 Fun1:
-    int 30h
+    ;int 30h
+    call User_Int1
+    ;call windmill
     jmp Protect_reg
 
 Fun2:
-    int 31h
+    ;int 31h
+    call User_Int2
+    ;call windmill
     jmp Protect_reg
 
 Fun3:
-    int 32h
+    ;int 32h
+    call User_Int3
+    ;call windmill
     jmp Protect_reg
 
 Fun4:
-    int 33h
+    ;int 33h
+    call User_Int4
+    ;call windmill
     jmp Protect_reg
 
 Protect_reg:
-    pop eax
     pop ebx
     pop ecx
     pop edx
     pop esi
     pop edi
-    pop ebp
+    ;pop ebp
     pop ds
     pop es
     pop fs
     pop gs
-    iret
+    pop eax
+    pop ebp
+    ret
 
 Keyboard_interrupt:
     ;protect register
@@ -320,9 +333,10 @@ User_Int1:
     pop fs
     pop gs
 
-    iret
+    ;;iret
+    ret
 
- User_Int2:
+User_Int2:
      ;protect register
      push gs
      push fs
@@ -336,7 +350,8 @@ User_Int1:
      push ebx
      push eax
 
-     call print_info
+     ;call print_info
+     call windmill
 
      ;reset register
      pop eax
@@ -351,9 +366,10 @@ User_Int1:
      pop fs
      pop gs
 
-     iret
+     ;iret
+     ret
 
- User_Int3:
+User_Int3:
      ;protect register
      push gs
      push fs
@@ -382,10 +398,10 @@ User_Int1:
      pop fs
      pop gs
 
-     iret
+     ;iret
+     ret
 
-
- User_Int4:
+User_Int4:
      ;protect register
      push gs
      push fs
@@ -415,7 +431,8 @@ User_Int1:
      pop fs
      pop gs
 
-     iret
+     ;iret
+     ret
 
 New_Process:
 ;protect register
@@ -522,7 +539,7 @@ End_Process:
         pop eax
 
      sti
-     iret
+     ret
 
 ; Below are the auxiliary functions
 
@@ -554,3 +571,8 @@ End_Process:
  ;   mov eax, dword [kernel_sp - 16]
  ;   pop eax
  ;   ret;
+
+defaultHandler:
+    add esp, 4
+    sti
+    iret

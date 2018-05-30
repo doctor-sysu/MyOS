@@ -1,14 +1,16 @@
 
-#include <Syscall.hpp>
+#include <System.hpp>
 
 void sleep();
 
 extern "C" int main() {
     for(int i = 0; i < 100000; ++i) {
-        for (int i = 1; i < 5; ++i)
-            SysC(i);
+//        for (int j = 1; j < 5; ++j)
+//            SysC(j);
+        SysC(2);
         sleep();
     }
+    SysC(90);
 }
 
 

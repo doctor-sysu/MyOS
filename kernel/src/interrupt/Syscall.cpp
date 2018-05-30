@@ -1,82 +1,28 @@
+#include "Syscall.hpp"
+#include <myos/kernel/Process.hpp>
 
-#include <myos/kernel/Keyboard.hpp>
+extern myos::kernel::Process processes;
 
-//printA
-static char *start = reinterpret_cast<char *>(0xb8000);
-static int x = 0;
-static int y = 0;
-static int count = 40;
-static char letter = 'A' - 1;
+namespace myos{
+namespace kernel{
+namespace Syscall{
 
-//printOuch
-static int flag = 5;
+//extern "C" void User_Int1();
+//extern "C" void User_Int2();
+//extern "C" void User_Int3();
+//extern "C" void User_Int4();
+//extern "C" void windmill();
+//extern void End_Process();
+/* parameter     function
+ * 1~5           SC_printSomething
+ * 90            SC_KillProcess
+ *
+ * */
 
-extern "C" void printA() {
-    --count;
-    if (count) {
-        return;
-    }
-    if (x == 0 && y == 0) {
-        //clear the screen
-        for (int i = 0; i < 2000; ++i)
-            *(start + 2 * i) = ' ';
-        if (letter == 'Z')
-            letter = 'A';
-        else
-            ++letter;
-    }
-    char *videomemory = start + 2 * (80 * y + x);
-    *(videomemory) = letter;
-    if (y == 0 && x < 79)
-        ++x;
-    else if (x == 79 && y < 24)
-        ++y;
-    else if (y == 24 && x > 0)
-        --x;
-    else
-        --y;
-    count = 40;
-    //clear "OUCH!"
-    if (flag == 0)
-        return;
-    else if (flag == 1) {
-        char *video = reinterpret_cast<char *>(0xb8000 + 2 * (13 * 80 + 35));
-        for (int i = 0; i < 10; ++i) {
-            *(video) = ' ';
-            video += 2;
-        }
-        flag = 0;
-    } else if (flag > 1)
-        --flag;
-}
-
-extern "C" void printOuch() {
-    char *videomem = reinterpret_cast<char *>(0xb8000 + 2 * (13 * 80 + 35));
-    char str[11] = "OUCH!OUCH!";
-    for (int i = 0; i < 10; ++i) {
-        *(videomem) = str[i];
-        videomem += 2;
-    }
-    flag = 10;
-}
-
-//windwill
-static int state = 1;
-static char *videomem_windwill = reinterpret_cast<char *>(0xb8000 + 2 * (5 * 80 + 20));
-
-//keyboard interrupt
-extern myos::kernel::Keyboard Keyboard_buffer;
-extern "C" void keyboard_input(){
-    Keyboard_buffer.kb_in();
-}
-
-//floppy interrupt
-extern bool finishReadSector;
-extern "C" void read_finished(){
-    finishReadSector = true;
-}
-
-extern "C" void windmill() {
+void windmill() {
+    //windwill
+    static int state = 1;
+    static char *videomem_windwill = reinterpret_cast<char *>(0xb8000 + 2 * (5 * 80 + 20));
     if (state == 5) {
         *(videomem_windwill) = '-';
         state = 1;
@@ -93,6 +39,24 @@ extern "C" void windmill() {
     }
 }
 
+void windmill2() {
+    static int state2 = 1;
+    static char *videomem_windwill2 = reinterpret_cast<char *>(0xb8000 + 2 * (10 * 80 + 20));
+    if (state2 == 5) {
+        *(videomem_windwill2) = '-';
+        state2 = 1;
+    } else {
+        if (state2 == 1)
+            *(videomem_windwill2) = '|';
+        else if (state2 == 2)
+            *(videomem_windwill2) = '/';
+        else if (state2 == 3)
+            *(videomem_windwill2) = '-';
+        else if (state2 == 4)
+            *(videomem_windwill2) = '\\';
+        ++state2;
+    }
+}
 
 //print_info
 static char info[40] = "16337062FENGZHENXUAN16337067GUANPEIDONG";
@@ -107,8 +71,7 @@ static int info_count = 40;
  * 4 left up
  */
 static int info_state = 1;
-
-extern "C" void print_info() {
+void print_info() {
 //    --info_count;
 //    if (info_count)
 //        return;
@@ -159,7 +122,7 @@ extern "C" void print_info() {
 //every 100 clock interrupts have a flash
 int helloworld_count = 200;
 
-extern "C" void print_Hello() {
+void print_Hello() {
     if (helloworld_count != 100)
         return;
     char *videomem_Hello = reinterpret_cast<char *>(0xb8000 + 2760);
@@ -175,7 +138,7 @@ extern "C" void print_Hello() {
     }
 }
 
-extern "C" void print_World() {
+void print_World() {
     --helloworld_count;
     if (helloworld_count)
         return;
@@ -185,7 +148,7 @@ extern "C" void print_World() {
         *(videomem_World - 60) = ' ';
         videomem_World += 2;
     }
-    videomem_World -= 10;  
+    videomem_World -= 10;
     char str[6] = "World";
     for (int i = 0; i < 5; ++i) {
         *(videomem_World) = str[i];
@@ -193,3 +156,35 @@ extern "C" void print_World() {
     }
     helloworld_count = 200;
 }
+
+void kill_process(myos::kernel::PCB* progress){
+    //processes.exchange(progress);
+    processes.kill(progress);
+}
+
+void syscall(PCB* progress) {
+    switch (progress->eax) {
+        case 1:
+            windmill();
+            break;
+        case 2:
+            windmill2();
+            break;
+        case 3:
+            print_Hello();
+            break;
+        case 4:
+            print_World();
+            break;
+        case 90:
+            kill_process(progress);
+            break;
+        default:
+            break;
+    };
+}
+
+}
+}
+}
+
