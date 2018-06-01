@@ -253,10 +253,8 @@ void* FAT12(char* file) {
     //然后用簇计算出LBA然后读用户程序的一个簇，并把用户程序读入内存
     //然后跳到下一个簇，依次循环读用户程序，直到遇到0x0FF7或以上的停止读扇区。
     //这样一来，用户程序就在内存里了。
-//    asm volatile(
-//    "sti"
-//    );
-    return reinterpret_cast<void *>(0x200000 + 0x20000 * (num));        //已经把用户程序加载到偏移量为 0x200000 处
+    num++;
+    return reinterpret_cast<void *>(0x200000 + 0x20000 * (num - 1));        //已经把用户程序加载到偏移量为 0x200000 处
 }
 
 }

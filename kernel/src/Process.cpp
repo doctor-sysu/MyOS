@@ -63,16 +63,16 @@ void Process::initial(){
 }
 
 void Process::kill(PCB* progress) {
-    for (int i = running; i < Process_Count - 1; i++) {
+    for (int i = running; i < Process_Count; i++) {
         PCBList[i] = PCBList[i + 1];
     }
     Process_Count--;
     if (!Process_Count) {
-        running = -1;
-        *progress = PCBList[SIZE_OF_PCBList];  //change to the kernel
+        running = 0;
+        *progress = PCBList[0];  //change to kernel process
     } else{
-        if (Process_Count == running)
-            running = 0;
+        if (Process_Count < running)
+            running = 1;
         *progress = PCBList[running];
     }
 }
@@ -84,11 +84,11 @@ void Process::change(PCB* progress){
         return;
     }
     if (Process_Count <= 0) return;
-    if (running < Process_Count){
+    if (running <= Process_Count){
         PCBList[running] = *progress;
         running++;
-        if (running == Process_Count)
-            running = 0;
+        if (running > Process_Count)
+            running = 1;
         *progress = PCBList[running];
     }
 }

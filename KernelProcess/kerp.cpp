@@ -8,7 +8,7 @@ void sleep() {
 
 extern "C" int main() {
     for(int i = 0; i < 100000; ++i) {
-        for (int j = 1; j < 5; ++j)
+        for (int j = 1; j < 2; ++j)
                SysC(j);
         sleep();
     }

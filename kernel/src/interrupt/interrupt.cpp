@@ -26,6 +26,7 @@ void __cpp_create_new_process() {
     if (now_process >= 2)
         return;
     char *userName = const_cast<char *>("LETTER0 EXE\0");
+    userName[6] = static_cast<char>(49 + now_process);
     uintptr_t load = reinterpret_cast<uintptr_t>
     (myos::kernel::FAT12::FAT12(userName));
     unsigned int entry;
