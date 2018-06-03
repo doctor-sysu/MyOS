@@ -162,20 +162,111 @@ void kill_process(myos::kernel::PCB* progress){
     processes.kill(progress);
 }
 
+
+//every 50 clock cycles print a chararter
+
+void print1()
+{
+    static char* str1 = const_cast<char *>("I LOVE");
+    static char *videomem1 = reinterpret_cast<char *>(0xb8000 + 2 * (5 * 80 + 17));
+    static int index1 = 0;
+    static int time_count1 = 0;
+    ++time_count1;
+    if(time_count1 != 20)
+        return;
+    if(index1 == 6)
+    {
+        index1 = 0;
+        videomem1 = reinterpret_cast<char *>(0xb8000 + 2 * (5 * 80 + 17));
+        for(int i = 0; i < 6; ++i)
+            *(videomem1 + i * 2) = ' ';
+    }
+    *videomem1 = str1[index1];
+    ++index1;
+    videomem1 += 2;
+    time_count1 = 0;
+}
+
+void print2()
+{
+    static char* str2 = const_cast<char *>("Studying");
+    static char *videomem2 = reinterpret_cast<char *>(0xb8000 + 2 * (5 * 80 + 60));
+    static int index2 = 0;
+    static int time_count2 = 0;
+    ++time_count2;
+    if(time_count2 != 20)
+        return;
+    if(index2 == 8)
+    {
+        index2 = 0;
+        videomem2 = reinterpret_cast<char *>(0xb8000 + 2 * (5 * 80 + 60));
+        for(int i = 0; i < 8; ++i)
+            *(videomem2 + i * 2) = ' ';
+    }
+    *videomem2 = str2[index2];
+    ++index2;
+    videomem2 += 2;
+    time_count2 = 0;
+}
+
+void print3()
+{
+    static char* str3 = const_cast<char *>("Operating");
+    static char *videomem3 = reinterpret_cast<char *>(0xb8000 + 2 * (17 * 80 + 17));
+    static int index3 = 0;
+    static int time_count3 = 0;
+    ++time_count3;
+    if(time_count3 != 20)
+        return;
+    if(index3 == 9)
+    {
+        index3 = 0;
+        videomem3 = reinterpret_cast<char *>(0xb8000 + 2 * (17 * 80 + 17));
+        for(int i = 0; i < 9; ++i)
+            *(videomem3 + i * 2) = ' ';
+    }
+    *videomem3 = str3[index3];
+    ++index3;
+    videomem3 += 2;
+    time_count3 = 0;
+}
+
+void print4()
+{
+    static char* str4 = const_cast<char *>("System");
+    static char *videomem4 = reinterpret_cast<char *>(0xb8000 + 2 * (17 * 80 + 60));
+    static int index4 = 0;
+    static int time_count4 = 0;
+    ++time_count4;
+    if(time_count4 != 20)
+        return;
+    if(index4 == 6)
+    {
+        index4 = 0;
+        videomem4 = reinterpret_cast<char *>(0xb8000 + 2 * (17 * 80 + 60));
+        for(int i = 0; i < 6; ++i)
+            *(videomem4 + i * 2) = ' ';
+    }
+    *videomem4 = str4[index4];
+    ++index4;
+    videomem4 += 2;
+    time_count4 = 0;
+}
+
 void syscall(PCB* progress) {
     switch (progress->eax) {
         case 1:
-            windmill();
+            print1();
             break;
         case 2:
-            windmill2();
+            print2();
             break;
         case 3:
-            print_Hello();
+            print3();
             break;
         case 4:
-            print_World();
-            break;
+            print4();
+           break;
         case 90:
             kill_process(progress);
             break;

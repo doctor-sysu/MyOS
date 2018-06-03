@@ -29,6 +29,15 @@ void LoadKernelProcess(){
             );
 }
 
+void Clear_Screen()
+{
+    for(int i = 0; i < 40; ++i)
+    {
+        for(int j = 0; j < 80; ++j)
+            *(reinterpret_cast<char*>(0xb8000 + 2*(80 * i + j))) = ' ';
+    }
+}
+
 extern "C" int main() {
     cpu_initialize();
     myos::kernel::IDT idt;
@@ -37,6 +46,7 @@ extern "C" int main() {
     //char *video = reinterpret_cast<char *>(0xb8000);
     //*(video) = 'A';
     Load_RD();
+    Clear_Screen();
     LoadKernelProcess();
 //    for(int i = 0; i < 100000; ++i) {
 //        for (int j = 1; j < 5; ++j)

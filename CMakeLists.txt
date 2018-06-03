@@ -16,6 +16,8 @@ add_custom_command(
         DEPENDS kerp
         DEPENDS letter1
         DEPENDS letter2
+        DEPENDS letter3
+        DEPENDS letter4
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         COMMAND ./pack.sh ${CMAKE_CURRENT_BINARY_DIR}
 )
