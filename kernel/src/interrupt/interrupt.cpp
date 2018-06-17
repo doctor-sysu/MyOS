@@ -71,24 +71,24 @@ void enterKernelUser(PCB *progress) {
 
 void _interruptHandle(uint32_t interruptNumber, PCB *progress) {
     switch (interruptNumber) {
-        case 0x20:
+        case 0x20:  //clock interrupt
             callprocess(progress);
             break;
-        case 0x21:
+        case 0x21:  //keyboard interrupt
             __cpp_create_new_process();
             break;
-        case 0x26:
+        case 0x26:  //floppy interrupt
             read_finished();
             break;
-        case 0x7f:
+        case 0x7f:  //call kernel process
             enterKernelUser(progress);
             break;
-        case 0x80:
+        case 0x80:  //syscall
             syscall(progress);
             break;
-        case 0x81:
-            __cpp_create_new_process();
-            break;
+//        case 0x81:
+//            __cpp_create_new_process();
+//            break;
         default: //default handle
             break;
     }

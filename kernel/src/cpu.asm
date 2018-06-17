@@ -57,8 +57,8 @@ cpu_enterUserCode:
     iret
 
 [SECTION .data]
-tss:
     ; See https://wiki.osdev.org/Task_State_Segment
+tss:
     DW 0 ; null
     DW 0 ; reserved
     DD 0x1fffff ; esp0, must be specified
