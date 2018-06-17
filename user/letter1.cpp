@@ -22,14 +22,14 @@ extern "C" int main() {
 //            *(videomem_Hello) = str[j];
 //            videomem_Hello += 2;
 //        }
-        SysC(2);
+        SysC(1);
         sleep();
 //        for (int j = 0; j < 5; j++){
 //            *(videomem_Hello) = ' ';
 //            videomem_Hello -= 2;
 //        }
     }
-    //SysC(90);
+    SysC(90);
     while (true){}
 }
 

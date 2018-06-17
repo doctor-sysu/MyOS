@@ -17,5 +17,7 @@ cd "${BUILD_DIR}"
 mcopy -i myos.img kernel/kernel ::/boot/kernel.bin
 mcopy -i myos.img user/letter1 ::/LETTER1.EXE
 mcopy -i myos.img user/letter2 ::/LETTER2.EXE
+mcopy -i myos.img user/letter3 ::/LETTER3.EXE
+mcopy -i myos.img user/letter4 ::/LETTER4.EXE
 mcopy -i myos.img KernelProcess/kerp ::/KERP.EXE
 #mcopy -i myos.img apps/welcome ::/WELCOME.EXE

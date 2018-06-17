@@ -11,6 +11,7 @@ using myos::kernel::Syscall::syscall;
 extern myos::kernel::Process processes;
 extern myos::kernel::Keyboard Keyboard_buffer;
 extern bool finishReadSector;
+extern uint32_t driving;
 
 extern "C" void cpu_enterUserCode(uint32_t address, uint32_t stack_base);
 
@@ -23,7 +24,7 @@ void __cpp_create_new_process() {
     static unsigned int now_process = 0;
     Keyboard_buffer.kb_in();
     if (Keyboard_buffer.size() < 2) return;
-    if (now_process >= 2)
+    if (now_process >= 4)
         return;
     char *userName = const_cast<char *>("LETTER0 EXE\0");
     userName[6] = static_cast<char>(49 + now_process);
@@ -31,7 +32,7 @@ void __cpp_create_new_process() {
     (myos::kernel::FAT12::FAT12(userName));
     unsigned int entry;
     //加载用户程序
-    if (load > 0) {
+      if (load > 0) {
         //entry = *(unsigned int *) ((unsigned int *) load + 0x18);
         processes.create(*(reinterpret_cast<uint32_t *>(load + 0x18)));
         //((void (*)()) entry)();
@@ -42,7 +43,8 @@ void __cpp_create_new_process() {
 
 //clock interrupt
 void callprocess(myos::kernel::PCB *progress) {
-    processes.exchange(progress);
+    if (!driving)
+        processes.exchange(progress);
 }
 
 //aimming keyboard interrupt

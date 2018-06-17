@@ -1,11 +1,12 @@
 
+
 #include <System.hpp>
 
 void sleep();
 
 extern "C" int main() {
     for (int i = 0; i < 100000; ++i) {
-        SysC(2);
+        SysC(4);
         sleep();
     }
     SysC(90);    //kill the process
