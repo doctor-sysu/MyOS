@@ -77,7 +77,8 @@ void _interruptHandle(uint32_t interruptNumber, PCB *progress) {
             callprocess(progress);
             break;
         case 0x21:
-            __cpp_create_new_process();
+            //__cpp_create_new_process();
+            keyboard_input();
             break;
         case 0x26:
             read_finished();
