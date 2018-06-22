@@ -42,7 +42,7 @@ void __cpp_create_new_process() {
 }
 
 //clock interrupt
-void callprocess(myos::kernel::PCB *progress) {
+void callprocess(myos::kernel::Processblock *progress) {
     if (!driving)
         processes.exchange(progress);
 }
@@ -50,6 +50,9 @@ void callprocess(myos::kernel::PCB *progress) {
 //aimming keyboard interrupt
 void keyboard_input() {
     Keyboard_buffer.kb_in();
+    char charater = Keyboard_buffer.kb_read();
+    char *videomem = reinterpret_cast<char *>(0xb8000 + 2770);
+    *(videomem) = charater;
 }
 
 //floppy interrupt
@@ -57,7 +60,7 @@ void read_finished() {
     finishReadSector = true;
 }
 
-void enterKernelUser(PCB *progress) {
+void enterKernelUser(Processblock *progress) {
     char name[13] = "KERP    EXE\0";
     uintptr_t load = reinterpret_cast<uintptr_t>
         (myos::kernel::FAT12::FAT12(name));
@@ -71,7 +74,7 @@ void enterKernelUser(PCB *progress) {
     processes.exchange(progress);
 }
 
-void _interruptHandle(uint32_t interruptNumber, PCB *progress) {
+void _interruptHandle(uint32_t interruptNumber, Processblock *progress) {
     switch (interruptNumber) {
         case 0x20:
             callprocess(progress);
@@ -101,7 +104,7 @@ void _interruptHandle(uint32_t interruptNumber, PCB *progress) {
 }
 }
 
-extern "C" void interruptHandle(uint32_t interruptNumber, PCB *process) {
+extern "C" void interruptHandle(uint32_t interruptNumber, myos::kernel::Processblock* process) {
     myos::kernel::interrupt::_interruptHandle(interruptNumber, process);
 }
 

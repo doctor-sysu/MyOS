@@ -1,11 +1,18 @@
 project(myos-clib)
 
+
+enable_language(ASM_NASM)
+
+set(CMAKE_ASM_NASM_OBJECT_FORMAT elf32)
+set(CMAKE_ASM_NASM_COMPILE_OBJECT "<CMAKE_ASM_NASM_COMPILER> <INCLUDES> <FLAGS> -f elf32 -o <OBJECT> <SOURCE>")
+
 add_library(clib
         src/ctype.c
         include/ctype.h
         include/clib.h
         src/clib.c
         src/crt.c
+        src/kliba.asm
         )
 
 target_compile_options(clib

@@ -8,8 +8,13 @@ namespace kernel{
 
 uint32_t Process::create(uint32_t _start) {
     uint32_t userStack = _start + 0x10000;
+
     Process_Count++;
-    PCB* new_process = &PCBList[Process_Count];
+    PCBList[Process_Count].pid = Process_Count;
+    PCBList[Process_Count].priority = 0;
+    PCBList[Process_Count].video_page = Process_Count;
+
+    PCB* new_process = &PCBList[Process_Count].pcb;
     new_process->cs = 0x1B;
     new_process->gs = 0x23;
     new_process->fs = 0x23;
@@ -37,7 +42,7 @@ uint32_t Process::create(uint32_t _start) {
     return userStack;
 }
 
-void Process::exchange(PCB* progress) {
+void Process::exchange(Processblock* progress) {
     if (Process_Count<0) {
         //put kernel into PCBList[SIZE_OF_PCBList]
         //PCBList[SIZE_OF_PCBList] = *progress;
@@ -62,7 +67,7 @@ void Process::initial(){
     Process_Count = -1;
 }
 
-void Process::kill(PCB* progress) {
+void Process::kill(Processblock* progress) {
     for (int i = running; i < Process_Count; i++) {
         PCBList[i] = PCBList[i + 1];
     }
@@ -77,7 +82,7 @@ void Process::kill(PCB* progress) {
     }
 }
 
-void Process::change(PCB* progress){
+void Process::change(Processblock* progress){
     if (running == -1) {
         running++;
         *progress = PCBList[0];
