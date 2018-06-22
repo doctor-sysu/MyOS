@@ -7,6 +7,15 @@ void SysC(int Funmem){
     );
 }
 
+void printf(char* str)
+{
+    asm volatile(
+    "mov eax, 5\n"
+    "int 0x80\n"
+    ::"b"(str)
+    );
+}
+
 void *memcpy(void *dest, const void *src, size_t count)
 {
     char *d;

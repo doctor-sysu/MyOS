@@ -6,7 +6,7 @@
 namespace myos{
 namespace kernel{
 
-#define FLAG_BREAK 0x80
+
 
 using cpplib::Queue;
 
@@ -15,12 +15,12 @@ public:
     Keyboard() = default;
     //void init_Keyboard();
     void kb_in();   //keyboard input
-    char kb_read(); //keyboard read
+    uint8_t kb_read(); //keyboard read, return scan code
     void clean();   //clean buffer
     void reset_kb_buffer(); //reset keyboard buffer
     unsigned int size();
 private:
-     Queue<char> buffer;
+     Queue<uint8_t > buffer;
 };
 
 }

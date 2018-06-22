@@ -68,12 +68,13 @@ struct Processblock
 class Process{
 public:
     uint32_t create(uint32_t);
-    void exchange(Processblock*);
+    void exchange(PCB*);
     void initial();
-    void kill(Processblock*);        //kill the running process
+    void kill(PCB*);        //kill the running process
+    const int32_t get_running();
     Process();
 private:
-    void change(Processblock*);
+    void change(PCB*);
     Processblock PCBList[SIZE_OF_PCBList + 1];
     int32_t running;
     int32_t Process_Count;
