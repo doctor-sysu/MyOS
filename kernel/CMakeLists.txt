@@ -31,6 +31,11 @@ add_executable(kernel
         src/interrupt/Syscall.hpp
         include/myos/kernel/MemoryManage.hpp
         src/MemoryManage.cpp
+        src/Scancode.cpp
+        include/myos/kernel/Scancode.hpp
+        include/myos/kernel/key.hpp
+        include/myos/kernel/Terminals.hpp
+        src/Terminals.cpp
         )
 
 target_compile_options(kernel

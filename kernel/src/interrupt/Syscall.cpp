@@ -69,7 +69,7 @@ static int info_count = 40;
  * 2 right up
  * 3 left down
  * 4 left up
- */
+
 static int info_state = 1;
 void print_info() {
 //    --info_count;
@@ -118,7 +118,7 @@ void print_info() {
     }
     info_count = 40;
 }
-
+*/
 //every 100 clock interrupts have a flash
 int helloworld_count = 200;
 
@@ -157,7 +157,7 @@ void print_World() {
     helloworld_count = 200;
 }
 
-void kill_process(myos::kernel::PCB* progress){
+void kill_process(myos::kernel::Processblock* progress){
     //processes.exchange(progress);
     processes.kill(progress);
 }
@@ -253,8 +253,8 @@ void print4()
     time_count4 = 0;
 }
 
-void syscall(PCB* progress) {
-    switch (progress->eax) {
+void syscall(Processblock* progress) {
+    switch (progress->pcb.eax) {
         case 1:
             print1();
             break;

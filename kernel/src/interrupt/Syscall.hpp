@@ -4,7 +4,7 @@ namespace myos{
 namespace kernel{
 namespace Syscall {
 
-void syscall(PCB*);
+void syscall(Processblock*);
 
 }
 }
