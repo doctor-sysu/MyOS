@@ -3,6 +3,8 @@
 
 myos::kernel::Process processes;
 
+extern myos::kernel::MemoryManager memManage;
+
 namespace myos{
 namespace kernel{
 
@@ -21,19 +23,10 @@ uint32_t Process::create(uint32_t _start) {
     new_process->ebp = new_process->esp;
     new_process->eflags = 0x00000202;
     new_process->Error_code = 0;
-//    asm volatile(
-//            "mov dword [edx], eax\n"
-//            "mov dword [edx - 4], ebx\n"
-//            "mov dword [edx - 8], ecx\n"
-//            ::"a"(new_process->eflags), "b"(new_process->cs)
-//                ,"c"(new_process->eip), "d"(new_process->esp)
-//            );
-//    asm volatile(
-//            "mov dword [eax - 12], eax\n"
-//            "mov dword [eax - 16], ebx\n"
-//            ::"a"(new_process->esp), "b"(new_process->ss)
-//            );
-//    new_process->esp -= 16;
+    MemoryList[Process_Count].PDE = reinterpret_cast<PageDirectoryEntry *>
+                                    (memManage.PageDirectoryAllocate());
+    //TODO default allocate memory
+    memManage.allocate(,&MemoryList[Process_Count],1);
     return userStack;
 }
 

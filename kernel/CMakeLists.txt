@@ -29,6 +29,8 @@ add_executable(kernel
         src/interrupt/Syscall.cpp
         src/interrupt/preinterruptHandle.asm
         src/interrupt/Syscall.hpp
+        include/myos/kernel/MemoryManage.hpp
+        src/MemoryManage.cpp
         )
 
 target_compile_options(kernel

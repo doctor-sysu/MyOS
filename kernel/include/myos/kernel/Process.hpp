@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <myos/kernel/MemoryManage.hpp>
 
 namespace myos{
 namespace kernel{
@@ -52,6 +53,7 @@ public:
 private:
     void change(PCB*);
     PCB PCBList[SIZE_OF_PCBList + 1];
+    UserMemoryManage MemoryList[SIZE_OF_PCBList + 1];
     int32_t running;
     int32_t Process_Count;
 };
