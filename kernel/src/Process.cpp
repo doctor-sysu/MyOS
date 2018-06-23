@@ -30,7 +30,9 @@ uint32_t Process::create(uint32_t _start) {
     new_process->Error_code = 0;
     PCBList[Process_Count].CR0 = reinterpret_cast<PageDirectoryEntry *>
                                     (memManage.PageDirectoryAllocate());
-    //TODO default allocate memory, a new funtion to allocate stack memory and the memery of code and data
+    //TODO default allocate memory, a new function to allocate stack memory and the memory of code and data
+    memManage.allocate(250,PCBList[Process_Count].CR0,0,1);
+    memManage.allocate(250,PCBList[Process_Count].CR0,0xc000000,1);
     return userStack;
 }
 

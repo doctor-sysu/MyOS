@@ -20,8 +20,8 @@ void MemoryManager::initial() {
         now->PS = 0;
         now->G = 0;
         now->Avail = 0;
-        now->PageTableAddress = static_cast<uint32_t>((0x200000 >> 12) + (i + 1));
-        PageTableEntry *PTE = reinterpret_cast<PageTableEntry *>(now->PageTableAddress << 12);
+        now->PageTableAddress = static_cast<uint32_t>((0x200000 >> OFFSET) + (i + 1));
+        PageTableEntry *PTE = reinterpret_cast<PageTableEntry *>(now->PageTableAddress << OFFSET);
         for (uint32_t j = 0; j < 1024; j++) {
             auto pte = PTE + j;
             pte->P = 0;
@@ -34,14 +34,14 @@ void MemoryManager::initial() {
             pte->PAT = 0;
             pte->G = 0;
             pte->Avail = 0;
-            pte->PageTable = (0x200000 >> 12) + 1 + BUNDARY
+            pte->PageTable = (0x200000 >> OFFSET) + 1 + BUNDARY
                              + 1024 * i + j;
         }
     }
 }
 
-uint32_t MemoryManager::PageDirectoryAllocate() { // return user's cr3
-    uint32_t address = allocateOnePage();
+uintptr_t MemoryManager::PageDirectoryAllocate() { // return user's cr3
+    uintptr_t address = allocateOnePage();
     PageDirectoryEntry* pde = reinterpret_cast<PageDirectoryEntry *>(address);
     for (uint32_t j = 0; j < BUNDARY; j++) {
         pde->P = 0;
@@ -60,7 +60,8 @@ uint32_t MemoryManager::PageDirectoryAllocate() { // return user's cr3
 }
 
 //the frame address
-void MemoryManager::allocate(uint32_t size, UserMemoryManage *UserPageTable, bool privilageLevel) {
+void MemoryManager::allocate(uint32_t size, PageDirectoryEntry *cr3
+        ,uintptr_t logicalAddress, bool privilageLevel) {
 //    uint8_t privilageLevel = 0;
 //    asm volatile(
 //    "mov eax, cs\n"
@@ -71,13 +72,12 @@ void MemoryManager::allocate(uint32_t size, UserMemoryManage *UserPageTable, boo
 //        : privilageLevel = 3;
     uint32_t numberOfPage = size % PAGE_SIZE ? size / PAGE_SIZE + 1
                                              : size / PAGE_SIZE;
-
-    uint32_t nowPageDirectoryToA = UserPageTable->numberOfPage / 1024;
-    uint32_t nowPageTableToA = UserPageTable->numberOfPage % 1024;
-    PageDirectoryEntry *nowPDE = UserPageTable->PDE + nowPageDirectoryToA;
+    uintptr_t nowPageDirectoryToA = logicalAddress / 1024;
+    uintptr_t nowPageTableToA = logicalAddress % 1024;
+    PageDirectoryEntry *nowPDE = cr3 + nowPageDirectoryToA;     //user_page_table's pde
     PageTableEntry *nowPTE = reinterpret_cast<PageTableEntry *>
-    (nowPDE->PageTableAddress << 12 + nowPageTableToA);
-    uint32_t pageCount = nowPageTableToA;
+    ((nowPDE->PageTableAddress << OFFSET) + nowPageTableToA);
+    uintptr_t pageCount = nowPageTableToA;
     while (numberOfPage) {
         if (pageCount % 1024 == 0 && pageCount != 0) {
             nowPDE++;
@@ -85,42 +85,38 @@ void MemoryManager::allocate(uint32_t size, UserMemoryManage *UserPageTable, boo
             nowPDE->U_S = privilageLevel;
             nowPDE->PageTableAddress = allocateOnePage();
             nowPTE = reinterpret_cast<PageTableEntry *>
-                     (nowPDE->PageTableAddress << 12);
+                     (nowPDE->PageTableAddress << OFFSET);
         }
         nowPTE->P = 1;
         nowPTE->U_S = privilageLevel;
         nowPTE->PageTable = allocateOnePage();
         nowPTE->R_W = 1;
         nowPTE++;
-        UserPageTable->numberOfPage++;
         numberOfPage--;
         pageCount++;
     }
 }
 
-void MemoryManager::free(UserMemoryManage *UserPageTable) {
-    uint32_t numberPageDirectoryToDelete = UserPageTable->numberOfPage / 1024;
-    uint32_t numberPageTableToDelete = UserPageTable->numberOfPage % 1024;
-    for (uint32_t i = 0; i <= numberPageDirectoryToDelete; i++) {
-        PageTableEntry *PageToDelete = reinterpret_cast<PageTableEntry *>
-        ((UserPageTable->PDE + i)->PageTableAddress << 12);
-        if (i != numberPageTableToDelete) {
+void MemoryManager::free(PageDirectoryEntry *cr3) {
+    for (uint32_t i = 0; i <= BUNDARY; i++) {
+        if ((cr3 + i)->P) {
+            PageTableEntry *PageToDelete = reinterpret_cast<PageTableEntry *>
+            ((cr3 + i)->PageTableAddress << OFFSET);
             for (uint32_t j = 0; j < 1024; j++) {
                 PageToDelete += j;
-                uint32_t address = PageToDelete->PageTable;
-                freeOnePage(address);
-            }
-        } else {
-            for (uint32_t j = 0; j < numberPageTableToDelete; j++) {
-                PageToDelete += j;
-                uint32_t address = PageToDelete->PageTable;
-                freeOnePage(address);
+                // free every page
+                if (PageToDelete->P) {
+                    uintptr_t address = PageToDelete->PageTable;
+                    freeOnePage(address);
+                }
             }
         }
-
-        uint32_t address = (UserPageTable->PDE + i)->PageTableAddress;
+        // free pageTable
+        uintptr_t address = (cr3 + i)->PageTableAddress;
         freeOnePage(address);
     }
+    // free page directory table
+    freeOnePage(reinterpret_cast<uintptr_t>(cr3) >> OFFSET);
 }
 
 uint32_t MemoryManager::allocateOnePage() {
@@ -137,11 +133,11 @@ uint32_t MemoryManager::allocateOnePage() {
     }
 }
 
-uint32_t MemoryManager::freeOnePage(uint32_t address) {
-    uint32_t nowPageDirectoryToDelete = address / 1024;
-    uint32_t nowPageTableToDelete = address % 1024;
+uint32_t MemoryManager::freeOnePage(uintptr_t address) { //address is the beginning of a Page
+    uintptr_t nowPageDirectoryToDelete = address / 1024;
+    uintptr_t nowPageTableToDelete = address % 1024;
     PageTableEntry *PageToReset = reinterpret_cast<PageTableEntry *>
-    ((PDE + nowPageDirectoryToDelete)->PageTableAddress << 12);
+    ((PDE + nowPageDirectoryToDelete)->PageTableAddress << OFFSET);
     (PageToReset + nowPageTableToDelete)->P = 0;
 }
 
