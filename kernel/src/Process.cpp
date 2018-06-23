@@ -36,7 +36,7 @@ uint32_t Process::create(uint32_t _start) {
     return userStack;
 }
 
-void Process::exchange(Processblock* progress) {
+void Process::exchange(PCB* progress) {
     if (Process_Count<0) {
         //put kernel into PCBList[SIZE_OF_PCBList]
         //PCBList[SIZE_OF_PCBList] = *progress;
@@ -61,37 +61,40 @@ void Process::initial(){
     Process_Count = -1;
 }
 
-void Process::kill(Processblock* progress) {
+void Process::kill(PCB* progress) {
     for (int i = running; i < Process_Count; i++) {
         PCBList[i] = PCBList[i + 1];
     }
     Process_Count--;
     if (!Process_Count) {
         running = 0;
-        *progress = PCBList[0];  //change to kernel process
+        *progress = PCBList[0].pcb;  //change to kernel process
     } else{
         if (Process_Count < running)
             running = 1;
-        *progress = PCBList[running];
+        *progress = PCBList[running].pcb;
     }
 }
 
-void Process::change(Processblock* progress){
+void Process::change(PCB* progress){
     if (running == -1) {
         running++;
-        *progress = PCBList[0];
+        *progress = PCBList[0].pcb;
         return;
     }
     if (Process_Count <= 0) return;
     if (running <= Process_Count){
-        PCBList[running] = *progress;
+        PCBList[running].pcb = *progress;
         running++;
         if (running > Process_Count)
             running = 1;
-        *progress = PCBList[running];
+        *progress = PCBList[running].pcb;
     }
 }
 
+const int32_t Process::get_running() {
+    return running;
+}
 
 
 }

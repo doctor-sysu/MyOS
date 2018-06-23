@@ -1,8 +1,10 @@
 #pragma once
+#include"Scancode.hpp"
 
 namespace myos{
 namespace kernel{
 
+#define videomem_base  0xb8000
 class Terminals
 {
 private:
@@ -10,17 +12,16 @@ private:
     int scr_x;
     int scr_y;
 
-    void* videomem_base = reinterpret_cast<void*> (0xb8000);
     const static int videomem_size = 4000;
     const static int max_video_pages = 3;
     int curx[max_video_pages];
     int cury[max_video_pages];
 
-    void disp_str(char* str, int length);
+
 public:
     Terminals();
     void switch_video_page(int pageid);
-
+    void disp_str(int pageid, char* str, int length);
 };
 
 }

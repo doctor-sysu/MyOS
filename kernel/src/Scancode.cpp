@@ -1,4 +1,5 @@
 #include<myos/kernel/Scancode.hpp>
+#include <myos/kernel/key.hpp>
 
 namespace myos {
 namespace kernel {
@@ -266,15 +267,42 @@ struct CodeSet {
             {0,    true}
     };
 };
-
 CodeSet codeset2;
-
+#define FLAG_BREAK 0x80
 //{.keyCode = 'A', .pressed = true},
 kernel_keyboard_key_Key kernel_keyboard_scanCode_toKey(uint8_t scanCode) {
-    return codeset2.map[scanCode];
-}
-}
+    bool make;
+    kernel_keyboard_key_Key key;
+
+    if(scanCode == 29)
+        _ctrl = true;
+    else if(scanCode == 157)
+        _ctrl = false;
+    
+    if(scanCode == 0xE1)
+    {}
+    else if(scanCode == 0xE0)
+    {}
+    else    //printable char
+    {
+        make = (scanCode & FLAG_BREAK) == 0;
+        if(make)
+        {
+            key = codeset2.map[static_cast<int>(scanCode)];
+            return key;
+        }
+    }
+
 }
 
+char kernel_keyboard_key_tochar(kernel_keyboard_key_Key key)
+{
+    return key.keyCode;
+}
+
+
+
+}
+}
 
 

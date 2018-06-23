@@ -1,7 +1,9 @@
 #include "Syscall.hpp"
+#include  <clib.h>
 #include <myos/kernel/Process.hpp>
-
+#include <myos/kernel/Terminals.hpp>
 extern myos::kernel::Process processes;
+extern myos::kernel::Terminals terminal;
 
 namespace myos{
 namespace kernel{
@@ -157,7 +159,7 @@ void print_World() {
     helloworld_count = 200;
 }
 
-void kill_process(myos::kernel::Processblock* progress){
+void kill_process(myos::kernel::PCB* progress){
     //processes.exchange(progress);
     processes.kill(progress);
 }
@@ -253,8 +255,13 @@ void print4()
     time_count4 = 0;
 }
 
-void syscall(Processblock* progress) {
-    switch (progress->pcb.eax) {
+void kprintf(char* str)
+{
+    terminal.disp_str(processes.get_running(), str, strlen(str));
+}
+
+void syscall(PCB* progress) {
+    switch (progress->eax) {
         case 1:
             print1();
             break;
@@ -267,6 +274,9 @@ void syscall(Processblock* progress) {
         case 4:
             print4();
            break;
+        case 5:
+            kprintf(reinterpret_cast<char*>(progress->ebx));
+            break;
         case 90:
             kill_process(progress);
             break;
