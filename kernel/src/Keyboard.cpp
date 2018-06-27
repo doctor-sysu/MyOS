@@ -1,20 +1,33 @@
 #include <myos/kernel/Keyboard.hpp>
 #include <myos/kernel/RW_port.hpp>
+#include <myos/kernel/Scancode.hpp>
+#include <cstdint>
+#include <cstddef>
 
-myos::kernel::Keyboard Keyboard_buffer;
+extern "C" void disable_int();
 
-namespace myos{
-namespace kernel{
+extern "C" void enable_int();
+
+myos::kernel::Keyboard keyboard;
+
+namespace myos {
+namespace kernel {
 
 using myos::kernel::RW_port::in;
 using myos::kernel::RW_port::out;
 
 void Keyboard::kb_in() {
-    char scan_code = in(0x60);
-    buffer.append(scan_code);
-    static char *videomem = reinterpret_cast<char *>(0xb8000 + 2 * (5 * 80 + 20));
-    *(videomem) = scan_code;
-    
+    uint8_t scancode = in(0x60);
+    buffer.append(scancode);
+}
+
+uint8_t Keyboard::kb_read() {
+    uint8_t scancode;
+    if (!buffer.empty()) {
+        scancode = buffer.top();
+        buffer.pop();
+        return scancode;
+    }
 }
 
 void Keyboard::clean() {
@@ -23,6 +36,10 @@ void Keyboard::clean() {
 
 unsigned int Keyboard::size() {
     return buffer.size();
+}
+
+void Keyboard::reset_kb_buffer() {
+    buffer.clear();
 }
 
 }

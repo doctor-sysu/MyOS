@@ -6,17 +6,20 @@
 namespace myos{
 namespace kernel{
 
+
+
 using cpplib::Queue;
 
 class Keyboard{
 public:
     Keyboard() = default;
-    //void init_Keyboard();
     void kb_in();   //keyboard input
+    uint8_t kb_read(); //keyboard read, return scan code
     void clean();   //clean buffer
+    void reset_kb_buffer(); //reset keyboard buffer
     unsigned int size();
 private:
-     Queue<char> buffer;
+     Queue<uint8_t > buffer;
 };
 
 }

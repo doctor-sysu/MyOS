@@ -8,8 +8,13 @@ namespace kernel{
 
 uint32_t Process::create(uint32_t _start) {
     uint32_t userStack = _start + 0x10000;
+
     Process_Count++;
-    PCB* new_process = &PCBList[Process_Count];
+    PCBList[Process_Count].pid = Process_Count;
+    PCBList[Process_Count].priority = 0;
+    PCBList[Process_Count].video_page = Process_Count;
+
+    PCB* new_process = &PCBList[Process_Count].pcb;
     new_process->cs = 0x1B;
     new_process->gs = 0x23;
     new_process->fs = 0x23;
@@ -69,31 +74,33 @@ void Process::kill(PCB* progress) {
     Process_Count--;
     if (!Process_Count) {
         running = 0;
-        *progress = PCBList[0];  //change to kernel process
+        *progress = PCBList[0].pcb;  //change to kernel process
     } else{
         if (Process_Count < running)
             running = 1;
-        *progress = PCBList[running];
+        *progress = PCBList[running].pcb;
     }
 }
 
 void Process::change(PCB* progress){
     if (running == -1) {
         running++;
-        *progress = PCBList[0];
+        *progress = PCBList[0].pcb;
         return;
     }
     if (Process_Count <= 0) return;
     if (running <= Process_Count){
-        PCBList[running] = *progress;
+        PCBList[running].pcb = *progress;
         running++;
         if (running > Process_Count)
             running = 1;
-        *progress = PCBList[running];
+        *progress = PCBList[running].pcb;
     }
 }
 
-
+const int32_t Process::get_running_page() {
+    return PCBList[running].video_page;
+}
 
 }
 }

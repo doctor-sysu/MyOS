@@ -1,12 +1,17 @@
 #include "Syscall.hpp"
+#include  <clib.h>
 #include <myos/kernel/Process.hpp>
+#include <myos/kernel/Terminals.hpp>
+#include <myos/kernel/FAT12.hpp>
 
 extern myos::kernel::Process processes;
+extern myos::kernel::Terminals terminal;
+extern myos::kernel::Keyboard keyboard;
 
-namespace myos{
-namespace kernel{
-namespace Syscall{
 
+namespace myos {
+namespace kernel {
+namespace Syscall {
 //extern "C" void User_Int1();
 //extern "C" void User_Int2();
 //extern "C" void User_Int3();
@@ -69,7 +74,7 @@ static int info_count = 40;
  * 2 right up
  * 3 left down
  * 4 left up
- */
+
 static int info_state = 1;
 void print_info() {
 //    --info_count;
@@ -118,7 +123,7 @@ void print_info() {
     }
     info_count = 40;
 }
-
+*/
 //every 100 clock interrupts have a flash
 int helloworld_count = 200;
 
@@ -143,8 +148,7 @@ void print_World() {
     if (helloworld_count)
         return;
     char *videomem_World = reinterpret_cast<char *>(0xb8000 + 2820);
-    for(int i = 0; i < 5; ++i)
-    {
+    for (int i = 0; i < 5; ++i) {
         *(videomem_World - 60) = ' ';
         videomem_World += 2;
     }
@@ -157,7 +161,7 @@ void print_World() {
     helloworld_count = 200;
 }
 
-void kill_process(myos::kernel::PCB* progress){
+void kill_process(myos::kernel::PCB *progress) {
     //processes.exchange(progress);
     processes.kill(progress);
 }
@@ -165,20 +169,18 @@ void kill_process(myos::kernel::PCB* progress){
 
 //every 50 clock cycles print a chararter
 
-void print1()
-{
-    static char* str1 = const_cast<char *>("I LOVE");
+void print1() {
+    static char *str1 = const_cast<char *>("I LOVE");
     static char *videomem1 = reinterpret_cast<char *>(0xb8000 + 2 * (5 * 80 + 17));
     static int index1 = 0;
     static int time_count1 = 0;
     ++time_count1;
-    if(time_count1 != 20)
+    if (time_count1 != 20)
         return;
-    if(index1 == 6)
-    {
+    if (index1 == 6) {
         index1 = 0;
         videomem1 = reinterpret_cast<char *>(0xb8000 + 2 * (5 * 80 + 17));
-        for(int i = 0; i < 6; ++i)
+        for (int i = 0; i < 6; ++i)
             *(videomem1 + i * 2) = ' ';
     }
     *videomem1 = str1[index1];
@@ -187,20 +189,18 @@ void print1()
     time_count1 = 0;
 }
 
-void print2()
-{
-    static char* str2 = const_cast<char *>("Studying");
+void print2() {
+    static char *str2 = const_cast<char *>("Studying");
     static char *videomem2 = reinterpret_cast<char *>(0xb8000 + 2 * (5 * 80 + 60));
     static int index2 = 0;
     static int time_count2 = 0;
     ++time_count2;
-    if(time_count2 != 20)
+    if (time_count2 != 20)
         return;
-    if(index2 == 8)
-    {
+    if (index2 == 8) {
         index2 = 0;
         videomem2 = reinterpret_cast<char *>(0xb8000 + 2 * (5 * 80 + 60));
-        for(int i = 0; i < 8; ++i)
+        for (int i = 0; i < 8; ++i)
             *(videomem2 + i * 2) = ' ';
     }
     *videomem2 = str2[index2];
@@ -209,20 +209,18 @@ void print2()
     time_count2 = 0;
 }
 
-void print3()
-{
-    static char* str3 = const_cast<char *>("Operating");
+void print3() {
+    static char *str3 = const_cast<char *>("Operating");
     static char *videomem3 = reinterpret_cast<char *>(0xb8000 + 2 * (17 * 80 + 17));
     static int index3 = 0;
     static int time_count3 = 0;
     ++time_count3;
-    if(time_count3 != 20)
+    if (time_count3 != 20)
         return;
-    if(index3 == 9)
-    {
+    if (index3 == 9) {
         index3 = 0;
         videomem3 = reinterpret_cast<char *>(0xb8000 + 2 * (17 * 80 + 17));
-        for(int i = 0; i < 9; ++i)
+        for (int i = 0; i < 9; ++i)
             *(videomem3 + i * 2) = ' ';
     }
     *videomem3 = str3[index3];
@@ -231,20 +229,18 @@ void print3()
     time_count3 = 0;
 }
 
-void print4()
-{
-    static char* str4 = const_cast<char *>("System");
+void print4() {
+    static char *str4 = const_cast<char *>("System");
     static char *videomem4 = reinterpret_cast<char *>(0xb8000 + 2 * (17 * 80 + 60));
     static int index4 = 0;
     static int time_count4 = 0;
     ++time_count4;
-    if(time_count4 != 20)
+    if (time_count4 != 20)
         return;
-    if(index4 == 6)
-    {
+    if (index4 == 6) {
         index4 = 0;
         videomem4 = reinterpret_cast<char *>(0xb8000 + 2 * (17 * 80 + 60));
-        for(int i = 0; i < 6; ++i)
+        for (int i = 0; i < 6; ++i)
             *(videomem4 + i * 2) = ' ';
     }
     *videomem4 = str4[index4];
@@ -253,7 +249,30 @@ void print4()
     time_count4 = 0;
 }
 
-void syscall(PCB* progress) {
+void __cpp_create_new_process() {
+    static unsigned int now_process = 0;
+    if (now_process >= 3)
+        return;
+    char *userName = const_cast<char *>("LETTER0 EXE\0");
+    userName[6] = static_cast<char>(49 + now_process);
+    uintptr_t load = reinterpret_cast<uintptr_t>
+    (myos::kernel::FAT12::FAT12(userName));
+    unsigned int entry;
+    //加载用户程序
+    if (load > 0) {
+        //entry = *(unsigned int *) ((unsigned int *) load + 0x18);
+        processes.create(*(reinterpret_cast<uint32_t *>(load + 0x18)));
+        //((void (*)()) entry)();
+    }
+    now_process++;
+    keyboard.clean();
+}
+
+void kprintf(char *str) {
+    terminal.disp_str(processes.get_running_page(), str, strlen(str));
+}
+
+void syscall(PCB *progress) {
     switch (progress->eax) {
         case 1:
             print1();
@@ -266,7 +285,13 @@ void syscall(PCB* progress) {
             break;
         case 4:
             print4();
-           break;
+            break;
+        case 5:
+            kprintf(reinterpret_cast<char *>(progress->ebx));
+            break;
+        case 6:
+             __cpp_create_new_process();
+            break;
         case 90:
             kill_process(progress);
             break;

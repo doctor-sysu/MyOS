@@ -29,6 +29,11 @@ add_executable(kernel
         src/interrupt/Syscall.cpp
         src/interrupt/preinterruptHandle.asm
         src/interrupt/Syscall.hpp
+        src/Scancode.cpp
+        include/myos/kernel/Scancode.hpp
+        include/myos/kernel/key.hpp
+        include/myos/kernel/Terminals.hpp
+        src/Terminals.cpp
         )
 
 target_compile_options(kernel

@@ -9,7 +9,8 @@ using myos::kernel::PCB;
 using myos::kernel::Syscall::syscall;
 
 extern myos::kernel::Process processes;
-extern myos::kernel::Keyboard Keyboard_buffer;
+extern myos::kernel::Keyboard keyboard;
+extern myos::kernel::Terminals terminal;
 extern bool finishReadSector;
 extern uint32_t driving;
 
@@ -20,26 +21,7 @@ namespace kernel {
 namespace interrupt {
 
 //keyboard interrupt
-void __cpp_create_new_process() {
-    static unsigned int now_process = 0;
-    Keyboard_buffer.kb_in();
-    if (Keyboard_buffer.size() < 2) return;
-    if (now_process >= 4)
-        return;
-    char *userName = const_cast<char *>("LETTER0 EXE\0");
-    userName[6] = static_cast<char>(49 + now_process);
-    uintptr_t load = reinterpret_cast<uintptr_t>
-    (myos::kernel::FAT12::FAT12(userName));
-    unsigned int entry;
-    //加载用户程序
-      if (load > 0) {
-        //entry = *(unsigned int *) ((unsigned int *) load + 0x18);
-        processes.create(*(reinterpret_cast<uint32_t *>(load + 0x18)));
-        //((void (*)()) entry)();
-    }
-    now_process++;
-    Keyboard_buffer.clean();
-}
+
 
 //clock interrupt
 void callprocess(myos::kernel::PCB *progress) {
@@ -49,7 +31,14 @@ void callprocess(myos::kernel::PCB *progress) {
 
 //aimming keyboard interrupt
 void keyboard_input() {
-    Keyboard_buffer.kb_in();
+    keyboard.kb_in();
+    uint8_t scancode = keyboard.kb_read();
+    kernel_keyboard_key_Key key = kernel_keyboard_scanCode_toKey(scancode);
+    if (scancode < 5 && scancode > 1)
+        terminal.switch_video_page(scancode - 1);
+    char *videomem = reinterpret_cast<char *>(0xb8000 + 2770);
+    keyboard.kb_read();
+    //*(videomem) = charater;
 }
 
 //floppy interrupt
@@ -60,7 +49,7 @@ void read_finished() {
 void enterKernelUser(PCB *progress) {
     char name[13] = "KERP    EXE\0";
     uintptr_t load = reinterpret_cast<uintptr_t>
-        (myos::kernel::FAT12::FAT12(name));
+    (myos::kernel::FAT12::FAT12(name));
     //加载用户程序
     if (load > 0) {
         processes.create(*(reinterpret_cast<uint32_t *>(load + 0x18)));
@@ -71,13 +60,13 @@ void enterKernelUser(PCB *progress) {
     processes.exchange(progress);
 }
 
+
 void _interruptHandle(uint32_t interruptNumber, PCB *progress) {
     switch (interruptNumber) {
         case 0x20:
             callprocess(progress);
             break;
         case 0x21:
-            //__cpp_create_new_process();
             keyboard_input();
             break;
         case 0x26:
@@ -89,9 +78,6 @@ void _interruptHandle(uint32_t interruptNumber, PCB *progress) {
         case 0x80:
             syscall(progress);
             break;
-        case 0x81:
-            __cpp_create_new_process();
-            break;
         default: //default handle
             break;
     }
@@ -101,7 +87,7 @@ void _interruptHandle(uint32_t interruptNumber, PCB *progress) {
 }
 }
 
-extern "C" void interruptHandle(uint32_t interruptNumber, PCB *process) {
+extern "C" void interruptHandle(uint32_t interruptNumber, myos::kernel::PCB *process) {
     myos::kernel::interrupt::_interruptHandle(interruptNumber, process);
 }
 
