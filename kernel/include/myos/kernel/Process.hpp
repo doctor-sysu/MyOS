@@ -63,13 +63,13 @@ struct Processblock
     int priority;
     int video_page;     //the index of this progress's tty
     int pid;        //progress's id
-    PageDirectoryEntry* CR0;    //process's cr0
+    PageDirectoryEntry* CR3;    //process's cr0
 };
 
 #pragma pack(pop)
 class Process{
 public:
-    uint32_t create(uint32_t);
+    uintptr_t create();
     void exchange(PCB*);
     void initial();
     void kill(PCB*);        //kill the running process
@@ -83,6 +83,8 @@ private:
     int32_t running;
     int32_t Process_Count;
 };
+
+void changeCR3(PageDirectoryEntry*);
 
 }
 }

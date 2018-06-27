@@ -8,6 +8,8 @@ namespace kernel{
 #define PAGE_SIZE 4096
 #define BUNDARY 256
 #define OFFSET 12
+#define SIZE_OF_ENTRY 4
+#define USER_START 0x200
 
 struct PageDirectoryEntry{
     bool P:1;
@@ -46,11 +48,13 @@ class MemoryManager{
 public:
     void initial();
     uintptr_t PageDirectoryAllocate();
+    void copyKernelPageTable(PageDirectoryEntry*,bool);
     void allocate(uint32_t,PageDirectoryEntry*,uintptr_t ,bool);
     void free(PageDirectoryEntry*);
 private:
     uint32_t allocateOnePage();
     uint32_t freeOnePage(uintptr_t);
+    PageDirectoryEntry* internalPDE;
     PageDirectoryEntry* PDE;
 };
 
