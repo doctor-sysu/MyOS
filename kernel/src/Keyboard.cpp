@@ -24,10 +24,8 @@ void Keyboard::kb_in() {
 uint8_t Keyboard::kb_read() {
     uint8_t scancode;
     if (!buffer.empty()) {
-        disable_int();
         scancode = buffer.top();
         buffer.pop();
-        enable_int();
         return scancode;
     }
 }

@@ -6,10 +6,9 @@ namespace myos{
 namespace kernel{
 
 #define PAGE_SIZE 4096
-#define BUNDARY 256
+#define BUNDARY 10
 #define OFFSET 12
-#define SIZE_OF_ENTRY 4
-#define USER_START 0x200
+#define USER_START 0x300
 
 struct PageDirectoryEntry{
     bool P:1;
@@ -51,8 +50,9 @@ public:
     void copyKernelPageTable(PageDirectoryEntry*,bool);
     void allocate(uint32_t,PageDirectoryEntry*,uintptr_t ,bool);
     void free(PageDirectoryEntry*);
+    uint32_t getPage(uintptr_t,PageDirectoryEntry*);
 private:
-    uint32_t allocateOnePage();
+    uint32_t allocateOnePage();     //return the Page Entry
     uint32_t freeOnePage(uintptr_t);
     PageDirectoryEntry* internalPDE;
     PageDirectoryEntry* PDE;

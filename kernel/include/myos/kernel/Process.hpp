@@ -69,11 +69,11 @@ struct Processblock
 #pragma pack(pop)
 class Process{
 public:
-    uintptr_t create();
+    uintptr_t create(char*);
     void exchange(PCB*);
     void initial();
     void kill(PCB*);        //kill the running process
-    const int32_t get_running();
+    const int32_t get_running_page();
     Process();
 private:
 //    PCB PCBList[SIZE_OF_PCBList + 1];
@@ -84,7 +84,7 @@ private:
     int32_t Process_Count;
 };
 
-void changeCR3(PageDirectoryEntry*);
+void changeCR3(uintptr_t);
 
 }
 }

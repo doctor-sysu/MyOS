@@ -4,7 +4,8 @@
 namespace myos{
 namespace kernel{
 
-#define videomem_base  0xb8000
+#define videomem_base 0xb8000
+
 class Terminals
 {
 private:

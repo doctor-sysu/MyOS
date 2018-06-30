@@ -118,9 +118,9 @@ void Load_FAT(uint32_t begin, uint32_t FAT_In_Memory, uintptr_t userCR3) {
     PageTableEntry *pte = reinterpret_cast<PageTableEntry *>
     (reinterpret_cast<PageDirectoryEntry *>(userCR3)->PageTableAddress << OFFSET);
     uint32_t offset =//static_cast<uint32_t>(0x200000 + 0x20000 * num);
-            (pte+USER_START*SIZE_OF_ENTRY)->PageTable << OFFSET;
+            (pte+USER_START)->PageTable << OFFSET;
     uint8_t pageFinish = 0;
-    uint32_t pteFinish = 0;
+    uint32_t pteFinish = USER_START;
     uint32_t pdeCount = 0;
     uint32_t now = begin;
 
@@ -137,10 +137,10 @@ void Load_FAT(uint32_t begin, uint32_t FAT_In_Memory, uintptr_t userCR3) {
             if (pteFinish == 1024) {
                 pteFinish = 0;
                 pdeCount++;
+                pte = reinterpret_cast<PageTableEntry *>
+                (reinterpret_cast<PageDirectoryEntry *>(userCR3 + pdeCount)->PageTableAddress << OFFSET);
             }
-            pte = reinterpret_cast<PageTableEntry *>
-            (reinterpret_cast<PageDirectoryEntry *>(userCR3 + pdeCount*SIZE_OF_ENTRY)->PageTableAddress << OFFSET);
-            offset = (pte + pteFinish*SIZE_OF_ENTRY)->PageTable << OFFSET;
+            offset = (pte + pteFinish)->PageTable << OFFSET;
         }
 
         //获取下一个簇号

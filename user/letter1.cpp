@@ -5,8 +5,8 @@ void sleep();
 
 
 extern "C" int main() {
-    for(int i = 0; i < 10000000; ++i) {
-        char *info = const_cast<char *>("I love studying operating system!\n");
+    for(int i = 0; i < 1; ++i) {
+        char *info = const_cast<char *>("1234567890qwertyuiop\n");
         printf(info);
         sleep();
     }

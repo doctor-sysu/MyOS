@@ -13,7 +13,6 @@ using cpplib::Queue;
 class Keyboard{
 public:
     Keyboard() = default;
-    //void init_Keyboard();
     void kb_in();   //keyboard input
     uint8_t kb_read(); //keyboard read, return scan code
     void clean();   //clean buffer

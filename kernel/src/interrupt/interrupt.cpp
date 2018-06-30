@@ -41,6 +41,32 @@ namespace interrupt {
 //    keyboard.clean();
 //}
 
+//page fault
+void PageFaultHandle(myos::kernel::PCB *progress){
+    uint32_t cr3,cr2;
+    asm volatile(
+            "mov %0, cr2\n"
+            "mov %1, cr3\n"
+            :"=r"(cr2),"=r"(cr3)
+            );
+    switch (progress->Error_code){
+        case 1:
+            break;
+        case 2:
+            break;
+        case 3:
+            break;
+        case 4:
+            break;
+        case 5:
+            break;
+        case 6:
+            break;
+        default:
+            break;
+    }
+}
+
 //clock interrupt
 void callprocess(myos::kernel::PCB *progress) {
     if (!driving)
@@ -52,9 +78,10 @@ void keyboard_input() {
     keyboard.kb_in();
     uint8_t scancode = keyboard.kb_read();
     kernel_keyboard_key_Key key = kernel_keyboard_scanCode_toKey(scancode);
-    if (scancode < 62 && scancode > 58)
-        terminal.switch_video_page(scancode - 58);
+    if (scancode < 5 && scancode > 1)
+        terminal.switch_video_page(scancode - 1);
     char *videomem = reinterpret_cast<char *>(0xb8000 + 2770);
+    keyboard.kb_read();
     //*(videomem) = charater;
 }
 
@@ -66,8 +93,9 @@ void read_finished() {
 void enterKernelUser(PCB *progress) {
     char name[13] = "KERP    EXE\0";
 
-    uintptr_t userCR3 = processes.create();
-    myos::kernel::FAT12::FAT12(name, userCR3);
+    uintptr_t userCR3 = processes.create(name);
+    //myos::kernel::FAT12::FAT12(name, userCR3);
+    
     //enter the kernel process, this will not exit except terminate the OS
     //cpu_enterUserCode(entry, userStack);
     processes.exchange(progress);
@@ -76,6 +104,9 @@ void enterKernelUser(PCB *progress) {
 
 void _interruptHandle(uint32_t interruptNumber, PCB *progress) {
     switch (interruptNumber) {
+        case 0xe:   //page fault
+            PageFaultHandle(progress);
+            break;
         case 0x20:  //clock interrupt
             callprocess(progress);
             break;
@@ -91,9 +122,6 @@ void _interruptHandle(uint32_t interruptNumber, PCB *progress) {
         case 0x80:  //syscall
             syscall(progress);
             break;
-//        case 0x81:
-//            __cpp_create_new_process();
-//            break;
         default: //default handle
             break;
     }
