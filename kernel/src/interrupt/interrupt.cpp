@@ -1,5 +1,4 @@
 #include <myos/kernel/Keyboard.hpp>
-//#include <myos/kernel/Process.hpp>
 #include <myos/kernel/FAT12.hpp>
 #include "Syscall.hpp"
 
@@ -21,7 +20,52 @@ namespace kernel {
 namespace interrupt {
 
 //keyboard interrupt
+//void __cpp_create_new_process() {
+//    static unsigned int now_process = 0;
+//    keyboard.kb_in();
+//    if (keyboard.size() < 2) return;
+//    if (now_process >= 3)
+//        return;
+//    char *userName = const_cast<char *>("LETTER0 EXE\0");
+//    userName[6] = static_cast<char>(49 + now_process);
+//    uintptr_t load = reinterpret_cast<uintptr_t>
+//    (myos::kernel::FAT12::FAT12(userName));
+//    unsigned int entry;
+//    //加载用户程序
+//    if (load > 0) {
+//        //entry = *(unsigned int *) ((unsigned int *) load + 0x18);
+//        processes.create(*(reinterpret_cast<uint32_t *>(load + 0x18)));
+//        //((void (*)()) entry)();
+//    }
+//    now_process++;
+//    keyboard.clean();
+//}
 
+//page fault
+void PageFaultHandle(myos::kernel::PCB *progress){
+    uint32_t cr3,cr2;
+    asm volatile(
+            "mov %0, cr2\n"
+            "mov %1, cr3\n"
+            :"=r"(cr2),"=r"(cr3)
+            );
+    switch (progress->Error_code){
+        case 1:
+            break;
+        case 2:
+            break;
+        case 3:
+            break;
+        case 4:
+            break;
+        case 5:
+            break;
+        case 6:
+            break;
+        default:
+            break;
+    }
+}
 
 //clock interrupt
 void callprocess(myos::kernel::PCB *progress) {
@@ -48,14 +92,11 @@ void read_finished() {
 
 void enterKernelUser(PCB *progress) {
     char name[13] = "KERP    EXE\0";
-    uintptr_t load = reinterpret_cast<uintptr_t>
-    (myos::kernel::FAT12::FAT12(name));
-    //加载用户程序
-    if (load > 0) {
-        processes.create(*(reinterpret_cast<uint32_t *>(load + 0x18)));
-    }
 
-    //enter the kernel process, this will not exit except terminal the OS
+    uintptr_t userCR3 = processes.create(name);
+    //myos::kernel::FAT12::FAT12(name, userCR3);
+    
+    //enter the kernel process, this will not exit except terminate the OS
     //cpu_enterUserCode(entry, userStack);
     processes.exchange(progress);
 }
@@ -63,19 +104,22 @@ void enterKernelUser(PCB *progress) {
 
 void _interruptHandle(uint32_t interruptNumber, PCB *progress) {
     switch (interruptNumber) {
-        case 0x20:
+        case 0xe:   //page fault
+            PageFaultHandle(progress);
+            break;
+        case 0x20:  //clock interrupt
             callprocess(progress);
             break;
         case 0x21:
             keyboard_input();
             break;
-        case 0x26:
+        case 0x26:  //floppy interrupt
             read_finished();
             break;
-        case 0x7f:
+        case 0x7f:  //call kernel process
             enterKernelUser(progress);
             break;
-        case 0x80:
+        case 0x80:  //syscall
             syscall(progress);
             break;
         default: //default handle

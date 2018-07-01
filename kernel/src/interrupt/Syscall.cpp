@@ -8,21 +8,18 @@ extern myos::kernel::Process processes;
 extern myos::kernel::Terminals terminal;
 extern myos::kernel::Keyboard keyboard;
 
+using myos::kernel::PCB;
 
 namespace myos {
 namespace kernel {
 namespace Syscall {
-//extern "C" void User_Int1();
-//extern "C" void User_Int2();
-//extern "C" void User_Int3();
-//extern "C" void User_Int4();
-//extern "C" void windmill();
-//extern void End_Process();
-/* parameter     function
- * 1~5           SC_printSomething
- * 90            SC_KillProcess
- *
+/* Parameter     Function
+ * 1~4           printSomething
+ * 5             print a string
+ * 7             create a process (fork())
+ * 90            KillProcess(exit())
  * */
+void kprintf(char* str);
 
 void windmill() {
     //windwill
@@ -63,67 +60,6 @@ void windmill2() {
     }
 }
 
-//print_info
-static char info[40] = "16337062FENGZHENXUAN16337067GUANPEIDONG";
-static int info_x = 0;
-static int info_y = 0;
-static int index = 0;
-static int info_count = 40;
-/*
- * 1 right down
- * 2 right up
- * 3 left down
- * 4 left up
-
-static int info_state = 1;
-void print_info() {
-//    --info_count;
-//    if (info_count)
-//        return;
-    char *videomem_info = reinterpret_cast<char *>(0xb8000 + 2 * (80 * (info_y + 1) + info_x + 40));
-    *(videomem_info) = info[index++];
-    if (index == 40)
-        index = 0;
-    if (info_state == 1) {
-        ++info_x;
-        ++info_y;
-        if (info_x == 37 && info_y == 11)
-            info_state = 4;
-        else if (info_y == 11)
-            info_state = 2;
-        else if (info_x == 37)
-            info_state = 3;
-    } else if (info_state == 2) {
-        ++info_x;
-        --info_y;
-        if (info_x == 37 && info_y == 0)
-            info_state = 3;
-        else if (info_x == 37)
-            info_state = 4;
-        else if (info_y == 0)
-            info_state = 1;
-    } else if (info_state == 3) {
-        --info_x;
-        ++info_y;
-        if (info_x == 0 && info_y == 11)
-            info_state = 2;
-        else if (info_x == 0)
-            info_state = 1;
-        else if (info_y == 11)
-            info_state = 4;
-    } else if (info_state == 4) {
-        --info_x;
-        --info_y;
-        if (info_x == 0 && info_y == 0)
-            info_state = 1;
-        else if (info_x == 0)
-            info_state = 2;
-        else if (info_y == 0)
-            info_state = 3;
-    }
-    info_count = 40;
-}
-*/
 //every 100 clock interrupts have a flash
 int helloworld_count = 200;
 
@@ -249,23 +185,26 @@ void print4() {
     time_count4 = 0;
 }
 
-void __cpp_create_new_process() {
+void create_new_process(){
     static unsigned int now_process = 0;
     if (now_process >= 3)
         return;
-    char *userName = const_cast<char *>("LETTER0 EXE\0");
-    userName[6] = static_cast<char>(49 + now_process);
-    uintptr_t load = reinterpret_cast<uintptr_t>
-    (myos::kernel::FAT12::FAT12(userName));
-    unsigned int entry;
-    //加载用户程序
-    if (load > 0) {
-        //entry = *(unsigned int *) ((unsigned int *) load + 0x18);
-        processes.create(*(reinterpret_cast<uint32_t *>(load + 0x18)));
-        //((void (*)()) entry)();
-    }
     now_process++;
-    keyboard.clean();
+    char *name = const_cast<char *>("LETTER0 EXE\0");
+    name[6] = static_cast<char>(49 + now_process);
+    
+    int load = myos::kernel::FAT12::Find_File(name);
+    //加载用户程序
+    if (load != -1) {
+        uintptr_t userCR3 = processes.create(name);
+        //myos::kernel::FAT12::FAT12(name, userCR3);
+        
+        //entry = *(unsigned int *) ((unsigned int *) load + 0x18);
+        //processes.create(*(reinterpret_cast<uint32_t *>(load + 0x18)));
+        //((void (*)()) entry)();
+    } else{
+        kprintf(const_cast<char *>("This file is not exist.\n"));
+    }
 }
 
 void kprintf(char *str) {
@@ -285,13 +224,19 @@ void syscall(PCB *progress) {
             break;
         case 4:
             print4();
-            break;
-        case 5:
-            kprintf(reinterpret_cast<char *>(progress->edx));
+           break;
+        case 5:     //print a string
+            kprintf(reinterpret_cast<char*>(progress->ebx));
             break;
         case 6:
-             __cpp_create_new_process();
+            create_new_process();
             break;
+//        case 5:
+//            kprintf(reinterpret_cast<char *>(progress->ebx));
+//            break;
+//        case 6:
+//             __cpp_create_new_process();
+//            break;
         case 90:
             kill_process(progress);
             break;
@@ -304,3 +249,86 @@ void syscall(PCB *progress) {
 }
 }
 
+//print_info
+//static char info[40] = "16337062FENGZHENXUAN16337067GUANPEIDONG";
+//static int info_x = 0;
+//static int info_y = 0;
+//static int index = 0;
+//static int info_count = 40;
+/*
+ * 1 right down
+ * 2 right up
+ * 3 left down
+ * 4 left up
+
+static int info_state = 1;
+void print_info() {
+//    --info_count;
+//    if (info_count)
+//        return;
+    char *videomem_info = reinterpret_cast<char *>(0xb8000 + 2 * (80 * (info_y + 1) + info_x + 40));
+    *(videomem_info) = info[index++];
+    if (index == 40)
+        index = 0;
+    if (info_state == 1) {
+        ++info_x;
+        ++info_y;
+        if (info_x == 37 && info_y == 11)
+            info_state = 4;
+        else if (info_y == 11)
+            info_state = 2;
+        else if (info_x == 37)
+            info_state = 3;
+    } else if (info_state == 2) {
+        ++info_x;
+        --info_y;
+        if (info_x == 37 && info_y == 0)
+            info_state = 3;
+        else if (info_x == 37)
+            info_state = 4;
+        else if (info_y == 0)
+            info_state = 1;
+    } else if (info_state == 3) {
+        --info_x;
+        ++info_y;
+        if (info_x == 0 && info_y == 11)
+            info_state = 2;
+        else if (info_x == 0)
+            info_state = 1;
+        else if (info_y == 11)
+            info_state = 4;
+    } else if (info_state == 4) {
+        --info_x;
+        --info_y;
+        if (info_x == 0 && info_y == 0)
+            info_state = 1;
+        else if (info_x == 0)
+            info_state = 2;
+        else if (info_y == 0)
+            info_state = 3;
+    }
+    info_count = 40;
+}
+*/
+//void kprintf(char* str)
+//{
+//    terminal.disp_str(processes.get_running(), str, strlen(str));
+//}
+//void __cpp_create_new_process() {
+//    static unsigned int now_process = 0;
+//    if (now_process >= 3)
+//        return;
+//    char *userName = const_cast<char *>("LETTER0 EXE\0");
+//    userName[6] = static_cast<char>(49 + now_process);
+//    uintptr_t load = reinterpret_cast<uintptr_t>
+//    (myos::kernel::FAT12::FAT12(userName));
+//    unsigned int entry;
+//    //加载用户程序
+//    if (load > 0) {
+//        //entry = *(unsigned int *) ((unsigned int *) load + 0x18);
+//        processes.create(*(reinterpret_cast<uint32_t *>(load + 0x18)));
+//        //((void (*)()) entry)();
+//    }
+//    now_process++;
+//    keyboard.clean();
+//}

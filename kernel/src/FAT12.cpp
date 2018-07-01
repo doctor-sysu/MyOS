@@ -1,6 +1,7 @@
 #include <myos/kernel/IDT.hpp>
 #include <clib.h>
 #include <myos/kernel/FAT12.hpp>
+#include <myos/kernel/MemoryManage.hpp>
 
 namespace myos {
 namespace kernel {
@@ -9,9 +10,6 @@ namespace FAT12 {
 using FAT12::readSector;
 
 uint32_t datasector = 0;
-
-//extern void print();
-//extern void mprintf(char *pszInfo);
 
 struct Directory_Entry {
     uint8_t DIR_NAME[11];                //文件名8字节，扩展名3字节
@@ -33,67 +31,6 @@ struct FAT_Entry1 {
     一个“EOF”(FF8H～FFFH、FFF8H～FFFFH或FFFFFFF8H～FFFFFFFFH之间的任一值), 表明该簇是文件中的最后一簇。*/
     char Current_Cluster[2];
 };
-
-//显示用户程序的信息
-//void printFile_Info()
-//{
-//    uint32_t index = 0;
-//    for(; index < 4; ++index)
-//    {
-//        char info[15] = "NAME:";
-//        uint32_t j = 0;
-//        for (; j < 11; ++j)
-//            info[j+5] = Root_Directory[index].DIR_NAME[j];
-//        char info1[15] = "   SIZE:";
-//        info1[0] = Root_Directory[index].DIR_NAME[10];
-//
-//        {uint32_t size = 0, mul = 1;
-//            for (j = 11; j < 15; ++j){
-//                size = size + Root_Directory[index].DIR_FileSize[j-11] * mul;
-//                mul *= 256;
-//            }
-//            char test[12];
-//            uint32_t a = size,i=0;
-//            while (a){
-//                test[i] = a % 10 +'0';
-//                a = a/10;
-//                i++;
-//            }
-//            uint32_t k = 0;
-//            for (;k<i;k++) info1[14-k] = test[k];
-//            for (k=8;k<15-i;k++) info1[k] =' ';
-//
-//        }
-//        char info2[15] = "     LOCATION:";
-//
-//        char info3[15];
-//        {	uint32_t location = 0, mul = 1;
-//            for (j = 0; j < 2; ++j){
-//                location = location + Root_Directory[index].DIR_FstClus[j] * mul;
-//                mul *= 256;
-//            }
-//            char test[12];
-//            uint32_t a = location,i=0;
-//            while (a){
-//                test[i] = a % 10 +'0';
-//                a = a/10;
-//                i++;
-//            }
-//            int k = 0;
-//            for (;k<i;k++) info3[k] = test[i-k-1];
-//            for (k=i;k<13;k++) info3[k] =' ';
-//            info3[13] = '\r';
-//            info3[14] = '\n';
-//        }
-//
-//        mprintf(info);
-//        mprintf(info1);
-//        mprintf(info2);
-//        mprintf(info3);
-//    }
-//    return;
-//}
-
 
 uint32_t ClusterLBA(const uint32_t cluster) {
     return cluster - 2;
@@ -166,7 +103,7 @@ int Find_File(char *file_name) {
 }
 
 //从扇区中读取FAT进内存
-void Load_FAT(uint32_t begin, uint32_t FAT_In_Memory, char num) {
+void Load_FAT(uint32_t begin, uint32_t FAT_In_Memory, uintptr_t userCR3) {
     uint32_t i = 0;
     uint32_t memory = FAT_In_Memory;
     uint32_t number_of_FAT_sector = bpbSectorsPerFAT;
@@ -177,8 +114,14 @@ void Load_FAT(uint32_t begin, uint32_t FAT_In_Memory, char num) {
     memory += bpbBytesPerSector;
     FAT_LBA++;
     //}
-    uint32_t offset = static_cast<uint32_t>(0x200000 + 0x20000 * num);
 
+    PageTableEntry *pte = reinterpret_cast<PageTableEntry *>
+    (reinterpret_cast<PageDirectoryEntry *>(userCR3)->PageTableAddress << OFFSET);
+    uint32_t offset =//static_cast<uint32_t>(0x200000 + 0x20000 * num);
+            (pte+USER_START)->PageTable << OFFSET;
+    uint8_t pageFinish = 0;
+    uint32_t pteFinish = USER_START;
+    uint32_t pdeCount = 0;
     uint32_t now = begin;
 
     while (now >= 0x0002 && now <= 0x0FF6) {
@@ -187,6 +130,18 @@ void Load_FAT(uint32_t begin, uint32_t FAT_In_Memory, char num) {
         Read_Sector(offset, LBA + datasector);
 
         offset += bpbBytesPerSector;
+        pageFinish++;
+        if (pageFinish == 8) {
+            pageFinish = 0;
+            pteFinish++;
+            if (pteFinish == 1024) {
+                pteFinish = 0;
+                pdeCount++;
+                pte = reinterpret_cast<PageTableEntry *>
+                (reinterpret_cast<PageDirectoryEntry *>(userCR3 + pdeCount)->PageTableAddress << OFFSET);
+            }
+            offset = (pte + pteFinish)->PageTable << OFFSET;
+        }
 
         //获取下一个簇号
         uint32_t index;
@@ -226,8 +181,8 @@ void Load_RD() {
 }
 
 //主函数，返回文件信息
-void* FAT12(char* file) {
-    static char num = 0;
+bool FAT12(char *file, uintptr_t userCR3) {
+    //static char num = 0;
     asm volatile(
     "cli"
     );
@@ -239,7 +194,7 @@ void* FAT12(char* file) {
         asm volatile(
         "sti"
         );
-        return 0;
+        return false;
     }
     //先加载FAT表进内存，然后放到FAT数组FAT_List里
     uint32_t FAT_In_Memory = 0x7000;
@@ -248,15 +203,76 @@ void* FAT12(char* file) {
     _begin[0] = Root_Directory[file_In_Directory].DIR_FstClus[0];
     _begin[1] = Root_Directory[file_In_Directory].DIR_FstClus[1];
     uint32_t begin = _begin[0] + _begin[1] * 256u;
-    Load_FAT(begin, FAT_In_Memory,num);    //把FAT表加载入内存
+    Load_FAT(begin, FAT_In_Memory, userCR3);    //把FAT表加载入内存
 
     //然后用簇计算出LBA然后读用户程序的一个簇，并把用户程序读入内存
     //然后跳到下一个簇，依次循环读用户程序，直到遇到0x0FF7或以上的停止读扇区。
     //这样一来，用户程序就在内存里了。
-    num++;
-    return reinterpret_cast<void *>(0x200000 + 0x20000 * (num - 1));        //已经把用户程序加载到偏移量为 0x200000 处
+    //num++;
+    //return reinterpret_cast<void *>(0x200000 + 0x20000 * (num - 1));        //已经把用户程序加载到偏移量为 0x200000 处
+    return true;
 }
 
 }
 }
 }
+
+//显示用户程序的信息
+//void printFile_Info()
+//{
+//    uint32_t index = 0;
+//    for(; index < 4; ++index)
+//    {
+//        char info[15] = "NAME:";
+//        uint32_t j = 0;
+//        for (; j < 11; ++j)
+//            info[j+5] = Root_Directory[index].DIR_NAME[j];
+//        char info1[15] = "   SIZE:";
+//        info1[0] = Root_Directory[index].DIR_NAME[10];
+//
+//        {uint32_t size = 0, mul = 1;
+//            for (j = 11; j < 15; ++j){
+//                size = size + Root_Directory[index].DIR_FileSize[j-11] * mul;
+//                mul *= 256;
+//            }
+//            char test[12];
+//            uint32_t a = size,i=0;
+//            while (a){
+//                test[i] = a % 10 +'0';
+//                a = a/10;
+//                i++;
+//            }
+//            uint32_t k = 0;
+//            for (;k<i;k++) info1[14-k] = test[k];
+//            for (k=8;k<15-i;k++) info1[k] =' ';
+//
+//        }
+//        char info2[15] = "     LOCATION:";
+//
+//        char info3[15];
+//        {	uint32_t location = 0, mul = 1;
+//            for (j = 0; j < 2; ++j){
+//                location = location + Root_Directory[index].DIR_FstClus[j] * mul;
+//                mul *= 256;
+//            }
+//            char test[12];
+//            uint32_t a = location,i=0;
+//            while (a){
+//                test[i] = a % 10 +'0';
+//                a = a/10;
+//                i++;
+//            }
+//            int k = 0;
+//            for (;k<i;k++) info3[k] = test[i-k-1];
+//            for (k=i;k<13;k++) info3[k] =' ';
+//            info3[13] = '\r';
+//            info3[14] = '\n';
+//        }
+//
+//        mprintf(info);
+//        mprintf(info1);
+//        mprintf(info2);
+//        mprintf(info3);
+//    }
+//    return;
+//}

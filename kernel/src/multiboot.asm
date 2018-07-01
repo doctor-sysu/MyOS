@@ -4,7 +4,7 @@ BITS 32
 
 header_start:
     dd 0x1BADB002 ; magic number (multiboot 2)
-    dd 0                         ; architecture 0 (protected mode i386)
+    dd 0          ; architecture 0 (protected mode i386)
     ; checksum
     dd (0 - 0x1BADB002)
 

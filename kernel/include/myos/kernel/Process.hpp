@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <myos/kernel/MemoryManage.hpp>
 
 namespace myos{
 namespace kernel {
@@ -62,23 +63,28 @@ struct Processblock
     int priority;
     int video_page;     //the index of this progress's tty
     int pid;        //progress's id
+    PageDirectoryEntry* CR3;    //process's cr0
 };
 
 #pragma pack(pop)
 class Process{
 public:
-    uint32_t create(uint32_t);
+    uintptr_t create(char*);
     void exchange(PCB*);
     void initial();
     void kill(PCB*);        //kill the running process
     const int32_t get_running_page();
     Process();
 private:
+//    PCB PCBList[SIZE_OF_PCBList + 1];
+//    UserMemoryManage MemoryList[SIZE_OF_PCBList + 1];
     void change(PCB*);
     Processblock PCBList[SIZE_OF_PCBList + 1];
     int32_t running;
     int32_t Process_Count;
 };
+
+void changeCR3(uintptr_t);
 
 }
 }

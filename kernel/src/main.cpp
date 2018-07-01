@@ -1,10 +1,12 @@
 #include <myos/kernel/IDT.hpp>
 #include <myos/kernel/FAT12.hpp>
 #include <myos/kernel/Process.hpp>
+#include <myos/kernel/MemoryManage.hpp>
 #include <System.hpp>
 
 extern "C" void cpu_initialize();
 extern myos::kernel::Process processes;
+extern myos::kernel::MemoryManager memManage;
 
 //void showA() {
 //    char *video = reinterpret_cast<char *>(0xb8000);
@@ -40,6 +42,7 @@ void Clear_Screen()
 
 extern "C" int main() {
     cpu_initialize();
+    memManage.initial();
     myos::kernel::IDT idt;
     idt.Install();
     processes.initial();

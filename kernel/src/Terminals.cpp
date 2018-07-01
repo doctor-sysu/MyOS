@@ -2,6 +2,7 @@
 #include <myos/kernel/Terminals.hpp>
 
 myos::kernel::Terminals terminal;
+
 extern myos::kernel::Keyboard keyboard;
 void myos::kernel::Terminals::switch_video_page(int pageid) {
     keyboard.reset_kb_buffer();

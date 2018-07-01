@@ -5,11 +5,12 @@ void sleep();
 
 
 extern "C" int main() {
-//    for(int i = 0; i < 1; ++i) {
-//        char *info = const_cast<char *>("1234567890qwertyuiop\n");
-//        printf(info);
-//        sleep();
-//    }
+    for(int i = 0; i < 1; ++i) {
+        char *info = const_cast<char *>("1234567890qwertyuiop\n");
+        printf(info);
+        sleep();
+    }
+
     SysC(90);
     while (true) {}
 }
