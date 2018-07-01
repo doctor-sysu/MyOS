@@ -7,12 +7,13 @@ void SysC(int Funmem){
     );
 }
 
-void printf(char* str)
+void printf(const char *str)
 {
-    asm volatile(
+    asm(
     "mov eax, 5\n"
     "int 0x80\n"
-    ::"b"(str)
+    :
+    : "d"(str)
     );
 }
 

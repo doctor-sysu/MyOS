@@ -287,7 +287,7 @@ void syscall(PCB *progress) {
             print4();
             break;
         case 5:
-            kprintf(reinterpret_cast<char *>(progress->ebx));
+            kprintf(reinterpret_cast<char *>(progress->edx));
             break;
         case 6:
              __cpp_create_new_process();

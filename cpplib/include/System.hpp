@@ -8,4 +8,4 @@ void SysC(int);
 
 void * memcpy(void *dest, const void *src, unsigned int count);
 
-void printf(char*);
+void printf(const char *);
