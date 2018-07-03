@@ -17,19 +17,32 @@ void myos::kernel::Terminals::switch_video_page(int pageid) {
     memcpy((void*)videomem_base, (void*)videomem_base + pageid * videomem_size, videomem_size);
 
     cur_video_page = pageid;
-    scr_x = 0;
-    scr_y = 24;
+    int tempx = curx[pageid];
+    int tempy = cury[pageid];
+    curx[cur_video_page] = 0;
+    cury[cur_video_page] = 24;
+    //scr_x = 0;
+    //scr_y = 24;
 
     static char* info = const_cast<char *>("Terminal  ");
     int info_length = 10;
     info[9] = static_cast<char>('0' + cur_video_page);
     disp_str(cur_video_page, info, info_length);
 
+    curx[cur_video_page] = tempx;
+    cury[cur_video_page] = tempy;
+
     scr_x = curx[cur_video_page];
     scr_y = cury[cur_video_page];
 }
 
 void myos::kernel::Terminals::disp_str(int pageid, char *str, int length) {
+    //curx[cur_video_page ] = scr_x;
+    //cury[cur_video_page] = scr_y;
+    scr_x = curx[pageid];
+    scr_y = cury[pageid];
+    //if(pageid != 3 && scr_x != 0)
+     //   scr_x = 0;
     for(int i = 0; i < length; ++i) {
         if(str[i] == '\n')
         {
@@ -49,6 +62,8 @@ void myos::kernel::Terminals::disp_str(int pageid, char *str, int length) {
         if(scr_y == 25)
             scr_x = scr_y = 0;
     }
+    curx[pageid] = scr_x;
+    cury[pageid] = scr_y;
     scr_x = curx[cur_video_page];
     scr_y = cury[cur_video_page];
 }
@@ -67,4 +82,10 @@ myos::kernel::Terminals::Terminals() {
         info[5] = static_cast<char>('0' + i);
         disp_str(i, info, 6);
     }
+    switch_video_page(1);
+}
+
+void myos::kernel::Terminals::set_x_y(int pageid, int x, int y) {
+    curx[pageid] = x;
+    cury[pageid] = y;
 }

@@ -5,9 +5,8 @@ void sleep();
 
 
 extern "C" int main() {
-    for(int i = 0; i < 1; ++i) {
-        char *info = const_cast<char *>("1234567890qwertyuiop\n");
-        printf(info);
+    for(int i = 0; i < 100000; ++i) {
+        SysC(1);
         sleep();
     }
 
@@ -16,7 +15,7 @@ extern "C" int main() {
 }
 
 void sleep() {
-    for (int i = 0; i < 100000; ++i) {
+    for (int i = 0; i < 10000000; ++i) {
         asm volatile("nop");
     }
 }

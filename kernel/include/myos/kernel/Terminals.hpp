@@ -14,7 +14,7 @@ private:
     int scr_y;
 
     const static int videomem_size = 4000;
-    const static int max_video_pages = 3;
+    const static int max_video_pages = 4;
     int curx[max_video_pages];
     int cury[max_video_pages];
 
@@ -23,6 +23,7 @@ public:
     Terminals();
     void switch_video_page(int pageid);
     void disp_str(int pageid, char* str, int length);
+    void set_x_y(int pageid, int x, int y);
 };
 
 }

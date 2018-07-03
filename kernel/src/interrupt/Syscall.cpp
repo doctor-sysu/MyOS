@@ -23,8 +23,9 @@ void kprintf(char* str);
 
 void windmill() {
     //windwill
+    /*
     static int state = 1;
-    static char *videomem_windwill = reinterpret_cast<char *>(0xb8000 + 2 * (5 * 80 + 20));
+    static char *videomem_windwill = reinterpret_cast<char *>(0xb8000 + 12000 + 2 * (5 * 80 + 20));
     if (state == 5) {
         *(videomem_windwill) = '-';
         state = 1;
@@ -39,11 +40,33 @@ void windmill() {
             *(videomem_windwill) = '\\';
         ++state;
     }
+     */
+
+    terminal.set_x_y(3, 20, 5);
+    static int state1 = 1;
+    char* c = const_cast<char *>(" ");
+    if(state1 == 5)
+    {
+        c[0] = '-';
+        state1 = 1;
+    }
+    else{
+        if(state1 == 1)
+            c[0] = '|';
+        else if(state1 == 2)
+            c[0] = '/';
+        else if(state1 == 3)
+            c[0] = '-';
+        else if(state1 == 4)
+            c[0] = '\\';
+    }
+    ++state1;
+    terminal.disp_str(3, c, 1);
 }
 
 void windmill2() {
-    static int state2 = 1;
-    static char *videomem_windwill2 = reinterpret_cast<char *>(0xb8000 + 2 * (10 * 80 + 20));
+    /*static int state2 = 1;
+    static char *videomem_windwill2 = reinterpret_cast<char *>(0xb8000 + 12000 + 2 * (10 * 80 + 20));
     if (state2 == 5) {
         *(videomem_windwill2) = '-';
         state2 = 1;
@@ -58,6 +81,27 @@ void windmill2() {
             *(videomem_windwill2) = '\\';
         ++state2;
     }
+     */
+    terminal.set_x_y(3, 20, 10);
+    static int state2 = 1;
+    char* c = const_cast<char *>(" ");
+    if(state2 == 5)
+    {
+        c[0] = '-';
+        state2 = 1;
+    }
+    else{
+        if(state2 == 1)
+          c[0] = '|';
+        else if(state2 == 2)
+            c[0] = '/';
+        else if(state2 == 3)
+            c[0] = '-';
+        else if(state2 == 4)
+            c[0] = '\\';
+    }
+    ++state2;
+    terminal.disp_str(3, c, 1);
 }
 
 //every 100 clock interrupts have a flash
@@ -106,9 +150,9 @@ void kill_process(myos::kernel::PCB *progress) {
 //every 50 clock cycles print a chararter
 
 void print1() {
-    static char *str1 = const_cast<char *>("I LOVE");
-    static char *videomem1 = reinterpret_cast<char *>(0xb8000 + 2 * (5 * 80 + 17));
-    static int index1 = 0;
+    static char *str1 = const_cast<char *>("I Love Studying\n");
+    terminal.disp_str(1, str1, strlen(str1));
+    /*static int index1 = 0;
     static int time_count1 = 0;
     ++time_count1;
     if (time_count1 != 20)
@@ -123,26 +167,41 @@ void print1() {
     ++index1;
     videomem1 += 2;
     time_count1 = 0;
+
+    static int y1 = 0;
+    static int time_count1 = 0;
+    ++time_count1;
+    if(time_count1 != 20)
+        return;
+    char *videomem1 = reinterpret_cast<char*>(0xb8000 + 2 * (y1 * 80));
+    for(int i = 0; i < strlen(str1); ++i)
+    {
+        *videomem1 = str1[i];
+        videomem1 += 2;
+    }
+
+    time_count1 = 0;
+    ++y1;
+    */
 }
 
 void print2() {
-    static char *str2 = const_cast<char *>("Studying");
-    static char *videomem2 = reinterpret_cast<char *>(0xb8000 + 2 * (5 * 80 + 60));
-    static int index2 = 0;
+    static char *str2 = const_cast<char *>("Operating System!\n");
+    terminal.disp_str(2, str2, strlen(str2));
+    /*static char y2 = 0;
+    char *videomem2 = reinterpret_cast<char *>(0xb8000 + 8000 + 2 * (y2 * 80));
     static int time_count2 = 0;
     ++time_count2;
     if (time_count2 != 20)
         return;
-    if (index2 == 8) {
-        index2 = 0;
-        videomem2 = reinterpret_cast<char *>(0xb8000 + 2 * (5 * 80 + 60));
-        for (int i = 0; i < 8; ++i)
-            *(videomem2 + i * 2) = ' ';
+    for(int i = 0; i < strlen(str2); ++i)
+    {
+        *videomem2 = str2[i];
+        videomem2 += 2;
     }
-    *videomem2 = str2[index2];
-    ++index2;
-    videomem2 += 2;
     time_count2 = 0;
+    ++y2;
+     */
 }
 
 void print3() {
@@ -220,10 +279,10 @@ void syscall(PCB *progress) {
             print2();
             break;
         case 3:
-            print3();
+            windmill2();
+            windmill();
             break;
         case 4:
-            print4();
            break;
         case 5:     //print a string
             kprintf(reinterpret_cast<char*>(progress->ebx));

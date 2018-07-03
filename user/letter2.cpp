@@ -13,7 +13,7 @@ extern "C" int main() {
 
 
 void sleep() {
-    for (int i = 0; i < 100000; ++i) {
+    for (int i = 0; i < 10000000; ++i) {
         asm volatile("nop");
     }
 }

@@ -19,7 +19,7 @@ extern "C" int main() {
     SysC(6);
     SysC(6);
     SysC(6);
-    
+
     while (true){
 
     }
